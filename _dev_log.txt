@@ -1,0 +1,101 @@
+
+> invest-journal@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.19
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.5.75:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 9.5s
+ ○ Compiling / ...
+ ✓ Compiled / in 8.7s (669 modules)
+ ✓ Compiled in 65ms (234 modules)
+prisma:error 
+Invalid `prisma.tickerWeek.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+prisma:error 
+Invalid `prisma.ticker.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+prisma:error 
+Invalid `prisma.tickerWeek.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+prisma:error 
+Invalid `prisma.ticker.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+ HEAD / 200 in 2626ms
+ GET / 200 in 13297ms
+prisma:error 
+Invalid `prisma.tickerWeek.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+prisma:error 
+Invalid `prisma.ticker.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+ GET / 200 in 4126ms
+ ✓ Compiled /tickers in 217ms (657 modules)
+ ✓ Compiled /reports in 145ms (664 modules)
+prisma:error 
+Invalid `prisma.ticker.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+prisma:error 
+Invalid `prisma.tickerWeek.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+prisma:error 
+Invalid `prisma.analysisEntry.groupBy()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+ GET /tickers 200 in 4409ms
+ GET /reports 200 in 1913ms
+ ✓ Compiled /earnings in 138ms (666 modules)
+ GET /earnings 200 in 178ms
+prisma:error 
+Invalid `prisma.tickerWeek.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+prisma:error 
+Invalid `prisma.ticker.findMany()` invocation:
+
+
+Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+ GET / 200 in 4120ms

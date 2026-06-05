@@ -1,0 +1,50 @@
+   ▲ Next.js 15.5.19
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 1760ms
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/21) ...
+   Generating static pages (5/21) 
+   Generating static pages (10/21) 
+   Generating static pages (15/21) 
+ ✓ Generating static pages (21/21)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                  Size  First Load JS
+┌ ○ /                                       162 B         106 kB
+├ ○ /_not-found                             995 B         103 kB
+├ ○ /calc                                   159 B         103 kB
+├ ○ /config                                 165 B         106 kB
+├ ○ /config/earnings                        159 B         103 kB
+├ ○ /config/fed-meetings                    159 B         103 kB
+├ ○ /config/note-types                      159 B         103 kB
+├ ○ /config/tickers                         165 B         106 kB
+├ ○ /earnings                               159 B         103 kB
+├ ○ /reports                                159 B         103 kB
+├ ○ /tickers                                159 B         103 kB
+├ ƒ /tickers/[symbol]                       853 B         113 kB
+├ ƒ /tickers/[symbol]/analysis            18.5 kB         124 kB
+├ ƒ /tickers/[symbol]/weeks/[weekStart]   1.44 kB         113 kB
+├ ○ /tools/calc                             885 B         103 kB
+├ ○ /tools/documentation/indicadores        159 B         103 kB
+├ ƒ /tools/documentation/strategies        6.5 kB         112 kB
+├ ƒ /tools/documentation/strategies/[id]    159 B         103 kB
+├ ○ /tools/documentation/strategies/new     159 B         103 kB
+├ ○ /tools/documentation/websites           159 B         103 kB
+├ ƒ /tools/strategies                       159 B         103 kB
+├ ƒ /tools/strategies/[id]                  159 B         103 kB
+├ ○ /tools/strategies/new                   159 B         103 kB
+└ ○ /tools/websites                         159 B         103 kB
++ First Load JS shared by all              102 kB
+  ├ chunks/255-98a0bdaa30757bda.js        46.2 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js   54.2 kB
+  └ other shared chunks (total)           1.99 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+OK 

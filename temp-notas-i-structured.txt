@@ -1,0 +1,55 @@
+0|style=None|bold=True|Conceptos generales Activos:
+3|style=None|bold=True|Compra ventaCuando compro un activo y el valor baja (en contra d emi prediccion), se pone  en negativo la cantidad iniciala invertida ,  no es perdida a menos que lo vendas
+8|style=Heading1|bold=True|2- etf; 2 prod (variado , de una empresa ) son diversificados y baratosOpciones
+9|style=None|bold=True|Definicion
+12|style=None|bold=True|-And strike price , (precio de ejercicio)La fiferencia entre comprar un contrato de opciones y el activo estriba (se deriva)  de la valorizacion de os contratos ante el movimiento del activo siendo mucho mas beneficioso los contratos porque estos se valorizan de manera exponencial ante el movimiento del activo.Como comprador o inversionista en opciones es mi responsabilidad elegir la inversion (dependiendo de mi eleccion va a ser el precio que me tocara pagar por el contrato) Compra venta
+13|style=None|bold=True|Tu decides de que activo , fecha de expiracion , and strike price:  Strike price:precio al cual yo espero a aspiro que pueda llegar el activo** el strike price es el producto que yo estoy comprando , el por lo que yo esto pagando dinero
+19|style=Heading2|bold=False|**Compra venta de Opciones
+27|style=Heading2|bold=False|Analisis, Toma de desicion
+40|style=None|bold=True|AF opciones = AF activos -activaElementos a tener en cuenta en Finviz : https://finviz.com/quote?t=NVDA&ty=c&ta=1&p=d#
+41|style=None|bold=False|- indice en el que cotiza la empresa : me ayuda a anticipar movimientos en bloque , por mas que una noticia impacte la empresa , el movimiento del indice arrastra la empresa , una empresa  puede pertenecer a varios indices.  En s&p 500   solo estan las mejores 500 hundrees , empresas entran y salen si no cumplen con las condiciones , cuando una empresa esta en varios indices es una empresa consolidadda pues cumple con los requisitos de cada indice .  que una empresa salga de un indice significa que las cosas van mal .
+42|style=None|bold=True|Busca empresas que pertenezcan a varios indices. Solo mira a que cantidad d eindices pertenece
+43|style=None|bold=True|- valor de mercado , (market cap)  El valor de mercado de una empresa me va a mostrar solidez o no de la misma en su sector y este se obtiene multiplicando el precio actual de la empresa por la cantidad de acciones que posee la misma  (shs outstanding) me dice cuantas acciones tiene la empresa
+44|style=None|bold=True|Para las opciones siempre es mejor invertir en empresas cuyo market caps esta en B y si es en M , more than 100 M , NOTON: Empresas con mut bajo MCap suelen set traicioneras a la hora de invertir en opciones , mayoria de las veces sale mal.   =   X   - Option/Short:  Si la empresa es opcionable
+45|style=None|bold=True|Nunca en la vida hagan un short ,-target price : valor objetivo de la empresa , es el valor al cual deberia cotizar la empresa  por proyecciones , futuras  basadas en datos hecha por especialista de analisis, el valor se obtienen por consenso de la plataforma finviz de todos los analisis .   versus valor actual Ver si estan actualizados: grafica de abajo en finvizNota : el grafico recomendado es tc2000: https://www.tc2000.com/
+46|style=None|bold=True|Recom: Que tan recomendado o no es comprar esa empresa , también se obtienen por consenso De 2 hacia abajo : altamente recomendado, Solo se usa para activos no Opciones De 2 a 3 : punto neutral De 3 a 5  mas : no recomendado
+48|style=None|bold=True|Insider : otra cosa a mirar Nota:Todo lo que se encuentre por encima del target price y un recom negativo esta sobrevalorado: solo se ganaria en opciones y con inversos .Y cuando esta sobrevalorado y extendido , entonces esta a punto de corregir, cuando esto pasa y NO corrige , ten paciencia .
+49|style=Heading2|bold=False|Analisis Tecnico Temporalidades -3-(2 informational)
+54|style=None|bold=True|Nota: la temporalidad semanal y mensual muestra un contexto de tendencia extendida o no , que de estar muy extendida es una señal fuerte y clara de tomar posición en la dirección contraria .
+55|style=None|bold=True|Noton: para la temporalidad mensual . cuanto me encuentro con el precio de un activo extremadamente expuesto en mensual , me encuentro ante un escenario poco usual que trae consigo fuertes movimientos en la direccion contraria.
+62|style=Heading3|bold=True|Tendencias:
+66|style=None|bold=True|Noton : las tendencia laterales suelen ser muy engannosas por lo que todo lo que parece ser termina no siendo, se recomienda operar en corto , Tendencia alcista : en las alcistas tods los intentos de jadas son para segior subiendo a menos de que me encuentre con una bajada que sea un cambio de tendencia. Tendencia bajista : en las tendencias bajistas , todos los intentos de subidas son para segir bajando a menos que la subida sea el cambio de tendencia Horarios del mercado: el mercado opera de 9:30 a 4:PM est time , de 4 PM a 8 PM es after market y de 8 a 4AM comiennzan los futuros de los indices . premarket y aftermarket sirven para anticipar .
+69|style=Heading3|bold=False|Indicadores : 5 , 97 % of the decision
+70|style=Heading3|bold=False|Velas , 15 %Las velas japonesas expresan el pre precio de apertura y de cierre maximo y minimo del un activo,el cuerpo te muestra el precio de apertura y cierre mientras que las sombras max and min
+82|style=Heading3|bold=False|VOLUMEN , 5% me va a mostrar la cantidad de compra o venta que puede estar habiendo en cuanto a transacciones , el volumen me muestra la intencion de mucha o pocas personas ,
+84|style=Heading3|bold=False|La cantidad de acciones que se compraron y venden Volatilidad cantidad de personas entrando y saliendo , 100 personas comprando 1 accion . Volumen alto, volatolidad baja es una persona compra 100 acciones
+85|style=Heading3|bold=True|Nota: Nos guiamos mas por volatilidad porque mas personas no pueden estar equivocadas Worden S, 5%
+95|style=None|bold=True|Medias moviles se usan en horas y dias, media de  20,40,100,y 200 .  En las MA cuando la media de 20 periodos se encuentra por encima de 40 periodos y las dos se muestran de manera ascendente en forma de canal me encuentro ante una tendencia Alcista . MA Alcista Cuando la MA de 100 esta por encima de 200 y las dos se muestran de manera ascendente en forma de canal me encuentro ante una tendencia alcista , hora , dia semana , mensual Las MA funcionan en pares 20 y 40 , 100y 200
+96|style=None|bold=True|NOTON: A mayor separacion entre las medias moviles , mas solida y saludable es la tendencia ,
+100|style=None|bold=True|NOton :MA 20 (alcista ) El precio nunca se divorcia o se aleja en extremo de la media por lo que cuando lleva de 2 a 5 dias sin tocar la media , el regreso a esta es inminente , hora o en dias , pesa mas dia
+109|style=None|bold=True|MA Bajista : Cuando l MA de 20 se encuentra debajo de 40 , y las dos se muestran de manera descendente en forma de canal me encuentro en una tendencia bajista
+111|style=None|bold=True|Cada una de las medias representa para el precio una zona de resistencia o techo , por lo que el precio cuando llega a esta , en un gran porciento rebotan. Teniendo mucho más peso , las MA de mayor periodo  Noton: a mayor separacion entre las medias , mas fuerte y solida esta la tendencia y a menor separacion mas debil y enferma esta . OJO repetir MA lateral : Cuando la MA de 100 y 200 se muestran laterales y las de 20 y 40 se cruzan , me encuentro ante una tendencia lateral
+112|style=None|bold=True|Noton ; Cuando ocurre el cruce de las 4 medias todas una muy cercana de la otra , me encuentro ante el inicio de una tendencia lateral , en una tendencia lateral los puntes de rebote suelen ser menos effectivos , traicioneros .
+114|style=None|bold=True|Bollinguer B , 50 %
+116|style=None|bold=False|Son tres lineas , como mejor funciona es como vienen por defecto ,
+127|style=None|bold=False|A la hora de tomar decisiones , siempre debo hacerlo donde hay volatilidad , a menos que este en la estrategia
+137|style=None|bold=True|Notonson: por lo anterior el precio nunca se divorcia del oscilador y cada vez que queda muy alejado del mismo el precio vine a buscar el disipador , siendo mucho mas potente en las temporalidades mas grandes, por lo lento que se mueven los osciladores en estas temporalidades
+139|style=None|bold=False|Noton: Noticia mata estrategia , Reunion de la FED  Y earning reporte de utilidades de una empresa , no hagas operaciones en la semana de reporte de earning de tu empresa. Por que el movimiento va a estar sujeto de una noticia .
+149|style=None|bold=True|Hline :
+156|style=None|bold=True|TerminologiaSpot price : valor del activo en el momento que elijo mu strike priceAsk price :  precio que voy a pagar cuando compro un contrato de opciones
+157|style=None|bold=True|Bid price: Precio que me pagaran cuando vendo Last price; valor real del contratoBanks to use Itrade - 0.50Charles Schwab..b .65Duda : No todos los activos tienen inversos ,que es un inverso , como se llega al insider Insider : se encuentra al final de la pagina
+160|style=Heading2|bold=False|EstrategiasDebo estar en una estrategia bajista ,
+161|style=Heading2|bold=False|—-
+163|style=Heading2|bold=False|Current en tendencia bajista
+182|style=None|bold=False|Estrategia del millon se presenta desde una lateralidad
+201|style=None|bold=False|Plan 35 % , buscar 35 % 3 veces a la semana
+204|style=None|bold=False|Todo lo que exceda el plan sacalo ,
+208|style=None|bold=False|–Plan 10 %
+230|style=None|bold=True|Fases del mercado , acumulacion , tendencia distribucion , tendencia
+235|style=None|bold=True|El insider te muestra todas las transacciones de compra y venta de su junta directiva de sus mismas acciones , me voy a encontrar si su junta directiva esta comprando o vendiendo
+237|style=None|bold=True|REQUISITOS
+238|style=None|bold=True|SE CUMPLE, NO se cumple amzn
+239|style=None|bold=True|apl
+269|style=Heading2|bold=False|Confirmacion :
+271|style=Heading2|bold=False|Lineas TENDENCIA
+272|style=None|bold=True|las lines de tendencia nunca puede romper un cuerpo de vela

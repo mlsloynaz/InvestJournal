@@ -1,0 +1,21 @@
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+✔ Generated Prisma Client (v6.19.3) to .\node_modules\@prisma\client in 99ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+
+PRISMA_GEN_OK  
+'docker' is not recognized as an internal or external command,
+operable program or batch file.
+DOCKER_UP_FAIL 
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": MySQL database "investjournal" at "localhost:3307"
+
+Error: P1001: Can't reach database server at `localhost:3307`
+
+Please make sure your database server is running at `localhost:3307`.
+DB_PUSH_FAIL 

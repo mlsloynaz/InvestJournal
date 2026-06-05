@@ -1,0 +1,44 @@
+   ▲ Next.js 15.5.19
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings in 3.7s
+
+./src/components/strategies/StrategyDetail.tsx
+Attempted import error: 'deleteStrategyRequirement' is not exported from '@/server/actions/strategies' (imported as 'deleteStrategyRequirement').
+
+Import trace for requested module:
+./src/components/strategies/StrategyDetail.tsx
+./src/app/tools/documentation/strategies/page.tsx
+
+./src/components/strategies/StrategyDetail.tsx
+Attempted import error: 'addStrategyRequirement' is not exported from '@/server/actions/strategies' (imported as 'addStrategyRequirement').
+
+Import trace for requested module:
+./src/components/strategies/StrategyDetail.tsx
+./src/app/tools/documentation/strategies/page.tsx
+
+./src/components/strategies/StrategyDetail.tsx
+Attempted import error: 'updateStrategyBestFor' is not exported from '@/server/actions/strategies' (imported as 'updateStrategyBestFor').
+
+Import trace for requested module:
+./src/components/strategies/StrategyDetail.tsx
+./src/app/tools/documentation/strategies/page.tsx
+
+ ✓ Compiled successfully in 10.6s
+   Linting and checking validity of types ...
+Failed to compile.
+
+./src/app/tools/documentation/strategies/page.tsx:93:23
+Type error: Type '{ name: string; id: number; createdAt: Date; updatedAt: Date; graphPath: string | null; graphFileName: string | null; bestFor: string | null; commonMistake: string | null; }[]' is not assignable to type 'StrategyListItem[]'.
+  Property '_count' is missing in type '{ name: string; id: number; createdAt: Date; updatedAt: Date; graphPath: string | null; graphFileName: string | null; bestFor: string | null; commonMistake: string | null; }' but required in type 'StrategyListItem'.
+
+[0m [90m 91 |[39m           [33mListado[39m
+ [90m 92 |[39m         [33m<[39m[33m/[39m[33mh2[39m[33m>[39m
+[31m[1m>[22m[39m[90m 93 |[39m         [33m<[39m[33mStrategyList[39m strategies[33m=[39m{strategies} selectedId[33m=[39m{selected[33m?[39m[33m.[39mid [33m?[39m[33m?[39m [36mnull[39m} [33m/[39m[33m>[39m
+ [90m    |[39m                       [31m[1m^[22m[39m
+ [90m 94 |[39m       [33m<[39m[33m/[39m[33msection[39m[33m>[39m
+ [90m 95 |[39m
+ [90m 96 |[39m       {selected [33m?[39m ([0m
+Next.js build worker exited with code: 1 and signal: null
+FAIL

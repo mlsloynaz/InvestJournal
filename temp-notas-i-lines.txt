@@ -1,0 +1,146 @@
+Conceptos generales Activos: 
+bienes y recursos de una empresa adquiridos por mas de 1 anno
+ Compra ventaCuando compro un activo y el valor baja (en contra d emi prediccion), se pone  en negativo la cantidad iniciala invertida ,  no es perdida a menos que lo vendas 
+Los activos no se expiran nunca Para comprar un activo solo debo identificar el activo, icker (letras que lo identifican )
+Productos de activos: 
+1- acciones : derecho de propiedad de una empresa
+2- etf; 2 prod (variado , de una empresa ) son diversificados y baratosOpciones
+Definicion 
+un contrato de opciones me da la opcion de adquirir 100 acciones pero no la obligacionCada bes que compro un contrato de opciones estoy comprando la opcion de adquirir 100 acciones de un activo . para lo cual tengo el derecho y al mismo tiempo la no obligacion. 
+Que no cambia 1=100 Elemntos que simepre van a existir dentro de un contrato de opciones - un activo - una fecha de expiracion 
+-And strike price , (precio de ejercicio)La fiferencia entre comprar un contrato de opciones y el activo estriba (se deriva)  de la valorizacion de os contratos ante el movimiento del activo siendo mucho mas beneficioso los contratos porque estos se valorizan de manera exponencial ante el movimiento del activo.Como comprador o inversionista en opciones es mi responsabilidad elegir la inversion (dependiendo de mi eleccion va a ser el precio que me tocara pagar por el contrato) Compra venta 
+Tu decides de que activo , fecha de expiracion , and strike price:  Strike price:precio al cual yo espero a aspiro que pueda llegar el activo** el strike price es el producto que yo estoy comprando , el por lo que yo esto pagando dinero 
+Tipos de contractos Call :  se valoriza con la subida del mercado PUT : se valoriza con la bajada del mercado
+Que deba pasar para ejercer el derecho ?
+No es mas que en el justo momento de la expiracion el valor del activo s encuentre en el strike price o lo haya superado y justo en ese momento yo voy a tener el derecho de ejerce mi contrato. 
+El valor de mi contrato si llegado el momento de la expiracion no se cumplen los tremos , se vuelve 0 . pierdo el dinero. 
+El contrato se extingue cuando expira , si no supera pierdes el dinero , si supera se extingue (o sea se vuelven acciones)  es tu responsabilidad de vender antes de que se expire si no tienes intencion de ejercer el derecho. 
+**Compra venta de Opciones 
+A la hora de comprar un contrato de opciones (call and put) siempre debo tener presente los siguientes elementos - Debo buscar siempre el strike price(producto que estoy comprando) que se encuentre en el rango optimo de precio porque este es el que mas se valoriza ante el mismo movimiento del activo.- Debo comprar siempre la fecha de expiracion mas cercana por que es tambien la que hace que mas rapido se valorice mi contrato de opciones- a la hora de elegir un contrato on rango , entre dias , lunes o martes , elegir la parte baja , miercoles parte media , jueves y viernes la parte alta Call a la izquierda Put a la derecha 
+At the money : .00   , when  spot price = strike price    strikeprrice identical in decimal to the spot price In the Money: greater than strike price Out of the money : has not reach the strike price In-the-money va a estar sombreado 
+Out-of-the-money no esta sombreado en el grafico En el 99% de los casos a la hora de comprar un contrato que se encuentre en el rango optimo de precio este va a estar en out-of-the-money , con la excepcion de que se encuentre muy proximo a su decha de expiracion y  en este caso puede que la encuentre in in-the-money. Nota : siempre voy a comprar el que esta en rango.  No importa que este in or out 
+El rango optimo de precio es un ejercicio que se hace y calcula que se va NOTA: nunca debo comprar un contrato de opciones cuando hay una diff entre el bid y el ask superior a un 10 o mas porcientoNOTA: siempre va a ver un lugar que esta en rango NOTA: Com inversionsta de opciones debo entender que los contratos estan en rango siempre se van a encontrar en una zona barata de precio . y el objetivo es comprar barato y vender caro. 
+Nota : A la hora de comprar opciones siempre debo comprar la fecha que se expira primero , porque es la que mas se valoriza con la excepcion de que me encuentre cerca de la fecha de expiracion pasado 10:30 AM , en ese caso comprar la siquiente fecha de expiracion
+El 99 % se expiran los dias Viernes , y algunos que expiran todos los diasCuando voy a elegir , solo elige tres empresas
+Analisis, Toma de desicion 
+Analisi fundamental - 3%, 4%(activo)Analisis tecnico -97%
+Tres principios que lo cambian todo para un inversionista
+1- el mercado no sube para siempre y no baja para siempre
+2- el mercado no sube en vertical ni baja en vertical por lo que cada subida va a venir acompañado de un intento  de bajada para seguir subiendo y viceversa . 
+3- el mercado siempre se va a anticipar a las noticias de lo que un verdadero resultado podria llegar a ser 
+Analisi fundamental (AF), plarform: finviz 
+Intenta establecer el precio teorico de un titulo a traves del estudio de las variable.que afectan su valor . 
+AF opciones is similar a AF activos si la forma de invertir es activa (compra venta en periodos cortos)
+AF opciones = AF activos -activaElementos a tener en cuenta en Finviz : https://finviz.com/quote?t=NVDA&ty=c&ta=1&p=d# 
+- indice en el que cotiza la empresa : me ayuda a anticipar movimientos en bloque , por mas que una noticia impacte la empresa , el movimiento del indice arrastra la empresa , una empresa  puede pertenecer a varios indices.  En s&p 500   solo estan las mejores 500 hundrees , empresas entran y salen si no cumplen con las condiciones , cuando una empresa esta en varios indices es una empresa consolidadda pues cumple con los requisitos de cada indice .  que una empresa salga de un indice significa que las cosas van mal . 
+Busca empresas que pertenezcan a varios indices. Solo mira a que cantidad d eindices pertenece
+- valor de mercado , (market cap)  El valor de mercado de una empresa me va a mostrar solidez o no de la misma en su sector y este se obtiene multiplicando el precio actual de la empresa por la cantidad de acciones que posee la misma  (shs outstanding) me dice cuantas acciones tiene la empresa 
+Para las opciones siempre es mejor invertir en empresas cuyo market caps esta en B y si es en M , more than 100 M , NOTON: Empresas con mut bajo MCap suelen set traicioneras a la hora de invertir en opciones , mayoria de las veces sale mal.   =   X   - Option/Short:  Si la empresa es opcionable 
+Nunca en la vida hagan un short ,-target price : valor objetivo de la empresa , es el valor al cual deberia cotizar la empresa  por proyecciones , futuras  basadas en datos hecha por especialista de analisis, el valor se obtienen por consenso de la plataforma finviz de todos los analisis .   versus valor actual Ver si estan actualizados: grafica de abajo en finvizNota : el grafico recomendado es tc2000: https://www.tc2000.com/
+Recom: Que tan recomendado o no es comprar esa empresa , también se obtienen por consenso De 2 hacia abajo : altamente recomendado, Solo se usa para activos no Opciones De 2 a 3 : punto neutral De 3 a 5  mas : no recomendado
+Insider : otra cosa a mirar Nota:Todo lo que se encuentre por encima del target price y un recom negativo esta sobrevalorado: solo se ganaria en opciones y con inversos .Y cuando esta sobrevalorado y extendido , entonces esta a punto de corregir, cuando esto pasa y NO corrige , ten paciencia .
+Analisis Tecnico Temporalidades -3-(2 informational) 
+Una temporalidad : muestra la histori adel precio de un activo en esa temporalidad 
+En las Bandas de bolinger a la hora de tomar desiciones voy a usar las temporalidades , hora , dia, 15min.y unicamente utilizare las temporalidades semanal y mensual para ver las tendencias a largo plazo de manera informativa.  
+A la hora de tomar desiciones la temporalidad dia pesa mas que hora y hora pesa mas que 15 min 
+Nota: la temporalidad semanal y mensual muestra un contexto de tendencia extendida o no , que de estar muy extendida es una señal fuerte y clara de tomar posición en la dirección contraria . 
+Noton: para la temporalidad mensual . cuanto me encuentro con el precio de un activo extremadamente expuesto en mensual , me encuentro ante un escenario poco usual que trae consigo fuertes movimientos en la direccion contraria. 
+En las bandas de B , la temp 15 min , me va a avisar primero  lo que va a terminar pasando en la temp hora y al mismo tiempo hora avisara lo que pasara en el dia . 
+Medias moviles: a la horadde tomar decisiones solo usare hora y dia. Y unicamente  semanal y mensual de manera informativa para ver la tendencia a largo plazo 
+    El las medias moviles , dia pesa mas que hora 
+Tendencias: 
+En la parte tecnica en las inversiones solo existen 3 tipos de tendencia , alcista , lateral y bajista . Las mismas se vinculan entre ellas de distintas formas y una siempre sucede a la otra en estas formas .Dentro de las tendencias nos encontramos con tres tipos de tiempos y esos son tendencia de corto plazo(1-6 dias ), tendencia de mediano plazo(7-20 dias), de largo plazo(20-30 dias o mas)Noton: estos tiempos se miden en la temporatidad hora , en hora cada 7 velitas es un dia 
+Noton : las tendencia laterales suelen ser muy engannosas por lo que todo lo que parece ser termina no siendo, se recomienda operar en corto , Tendencia alcista : en las alcistas tods los intentos de jadas son para segior subiendo a menos de que me encuentre con una bajada que sea un cambio de tendencia. Tendencia bajista : en las tendencias bajistas , todos los intentos de subidas son para segir bajando a menos que la subida sea el cambio de tendencia Horarios del mercado: el mercado opera de 9:30 a 4:PM est time , de 4 PM a 8 PM es after market y de 8 a 4AM comiennzan los futuros de los indices . premarket y aftermarket sirven para anticipar . 
+Un salto ocurre pr la dirrupcion del precio de cierre de un activo y la apertura del siguiente dia , esto se debe a la compra y venta del activo por los grandes fondos que no s ele permite operar en horario de mercado 
+Indicadores : 5 , 97 % of the decision 
+Velas , 15 %Las velas japonesas expresan el pre precio de apertura y de cierre maximo y minimo del un activo,el cuerpo te muestra el precio de apertura y cierre mientras que las sombras max and min 
+Ala hora de tomar decisiones , las velas representan un elemento de confirmacion importante , porque me van a mostrar la intencion de compra o venta del activo en cuestion 
+Dentro de las velas me voy a encontrar distintas formas de velas , ellas me muestran una lectura de lo que podria continuar=r pasando
+Las V alcistas suelen ser un fuerte elmo de confirmacion de COMPRA , por lo que en mayoria se acompannan de velas del mismo tipoLas velas neutrales indican una formacion neutra nunca deben ser usadas como elemento de confirmacion 
+Las velas extremadamente bajistas suelen ser un elemoto de confirmacion de venta por que suelen venir acompannadas de velas del mismo tipo 
+Hanger : marillo invertido , verde es bajista hay mas intencion de venta que de compra , Las ventas que son compradas son anuladas . Ambas son bajistas hay mas intencion de ventas que de compras 
+Las velas extremadamente alcistas o bajistas son fuerte elemento de confirmacion ya que en un alto porcentaje de las velas el mov continua en la direccion de la vela : no sombras 
+VOLUMEN , 5% me va a mostrar la cantidad de compra o venta que puede estar habiendo en cuanto a transacciones , el volumen me muestra la intencion de mucha o pocas personas , 
+La cantidad de acciones que se compraron y venden Volatilidad cantidad de personas entrando y saliendo , 100 personas comprando 1 accion . Volumen alto, volatolidad baja es una persona compra 100 acciones 
+Nota: Nos guiamos mas por volatilidad porque mas personas no pueden estar equivocadas Worden S, 5%
+Indica sobreventa y sobrecompra 
+Moving average , promedio movil , 25 %
+El precio del cierre de las ultimas X numbers Vela y me hace una linea con el promedio de esa s cantidades 
+Medias moviles se usan en horas y dias, media de  20,40,100,y 200 .  En las MA cuando la media de 20 periodos se encuentra por encima de 40 periodos y las dos se muestran de manera ascendente en forma de canal me encuentro ante una tendencia Alcista . MA Alcista Cuando la MA de 100 esta por encima de 200 y las dos se muestran de manera ascendente en forma de canal me encuentro ante una tendencia alcista , hora , dia semana , mensual Las MA funcionan en pares 20 y 40 , 100y 200 
+NOTON: A mayor separacion entre las medias moviles , mas solida y saludable es la tendencia , 
+a menor separacion mas debil y enferma esta la tendencia . Nota : cuando las 4 medias se muestran en el orden de 20 sobre 40 40 sobre 100 y 100 sobre 200 , me encuentro ante una alciasta de largo plazo , en hora y dia . 
+NOton :MA 20 (alcista ) El precio nunca se divorcia o se aleja en extremo de la media por lo que cuando lleva de 2 a 5 dias sin tocar la media , el regreso a esta es inminente , hora o en dias , pesa mas dia 
+Nota : en una tendencia alcista la MA representan una zona de piso y de supporte por lo que el precio al llegar a estas por primera ves , en la mayoria de las veces rebota . teniendo mucho menos probabilidad los 2 3 4 o 5 rebotes 
+El las MA a mas alto el periodo , mas alta es el porcentaje de rebote , a mayor separacion mas probable el rebote , por que la tendencia es mas solida , a mas rebota menos probabilidad Cuando en la de 20 rebotan 3 0 4 veces  la de 20 deja de tener peso , mira la de 40 , and so on 
+Noton : a mayor periodo sea la media mas pesa . 
+MA Bajista : Cuando l MA de 20 se encuentra debajo de 40 , y las dos se muestran de manera descendente en forma de canal me encuentro en una tendencia bajista 
+Cuando la de 100 se encuentra por debajo de la de 200 y las dos se muestran de,anera descendente en forma de canal , me encuentro ante una tendencia bajista 
+Cada una de las medias representa para el precio una zona de resistencia o techo , por lo que el precio cuando llega a esta , en un gran porciento rebotan. Teniendo mucho más peso , las MA de mayor periodo  Noton: a mayor separacion entre las medias , mas fuerte y solida esta la tendencia y a menor separacion mas debil y enferma esta . OJO repetir MA lateral : Cuando la MA de 100 y 200 se muestran laterales y las de 20 y 40 se cruzan , me encuentro ante una tendencia lateral 
+Noton ; Cuando ocurre el cruce de las 4 medias todas una muy cercana de la otra , me encuentro ante el inicio de una tendencia lateral , en una tendencia lateral los puntes de rebote suelen ser menos effectivos , traicioneros . 
+Bollinguer B , 50 %
+Son tres lineas , como mejor funciona es como vienen por defecto , 
+Disipadores u osciladores (superior e inferior ): lineas externas 
+Linea media de 20 periodos = punto medio 
+En las bandas de bolinger , punto medio MA 20 me va a mostrar la tendencia en la cual me encuentro , si esta se observe alcista  me encuentro en tendencia alcista and so on . 
+En las bandas de B , el oscilador o disipador siempre mostrará el estado de la volatilidad , cuando estos se muestran  cerrados => baja volatilidad , cuando estan extremadamente cerrados , la volatilidad es inexistente prácticamente nula 
+Cuando los disipadores estan muy abiertos  => periodo de alta volatilidad y cuando se muestran extremadamente abiertos , me encuentro en periodo de volatilidad extrema . 
+La volatilidad es y siempre va a hacer van a ser cíclica   => alto periodo de Volatilidad siempre va a venir sucedido por un bajo periodo de volatilidad
+NOton: Todo lo anterior se cumple estrictamente en cada una de las temporalidades en la que me encuentre teniendo mucho mas peso , en las temporalidades mas grande 
+A la hora de tomar decisiones , siempre debo hacerlo donde hay volatilidad , a menos que este en la estrategia 
+‘salido de  Bolinger en 15 min sin volatilidad “ ocurre en la apertura del mercado , en Bolinger un alto periodo de Volatilidad representa continuidad de movimiento siendo aun mas fuerte en los periodos de volatilidad extrema , En bolinger un bajo periodo de volatiliddad representa un freno para el movimiento En las bandas de bolinger los osciladores o disipadore y el precio me muestran zonas de sobrecompra o sobreventa 
+En una tendencia lateral el precio fluctua entre los discipipadoires por lo que el punto medio no es un punto de rebote 
+En una tendencia alcista , el precio va a seguir la direccion de la tendencia por lo que el punto medio constituye un punto de rebote , subiendo mucho mas fuerte este punto en las temporalidades mas grandes 
+En una tendencia bajista el precio siempre va  aseguir la de direccion de la tendencia por lo que le pto medio constituye un punto d erebote para el precio , siendo mucvho mas fuerte en las temporalidades mas grande , 
+Notonson: por lo anterior el precio nunca se divorcia del oscilador y cada vez que queda muy alejado del mismo el precio vine a buscar el disipador , siendo mucho mas potente en las temporalidades mas grandes, por lo lento que se mueven los osciladores en estas temporalidades 
+ Saltos Us segundo salto siempre viene sucedido de un primer salto , en la mayoría de las veces cuando este se presenta al final o inicio de una tendencia . Que debes hacer antes de invertir 
+Noton: Noticia mata estrategia , Reunion de la FED  Y earning reporte de utilidades de una empresa , no hagas operaciones en la semana de reporte de earning de tu empresa. Por que el movimiento va a estar sujeto de una noticia . 
+Donde veo eso ??   si nohay reunion , NO cumple 
+Marcar las posibilidades de hora y dia 
+Reglas Refuerzos : se hacen con tiempo no el viernes , los puntos de entradas para refuerzos son  todos los puntos de refuerzos. Para practicar , compra mal y add el refuerzo para que practiques quedarte en la neutralidad . 
+Movimientos en bloques 
+Hline : 
+son una tool poderosa que se utiliza para marcar los máximos y mínimos históricos Ath: all time high , atl all time low , ya que el precio al llegar esto mayormente rebota y de no hacerlo y rompe es porque busca nuevos max and min que suelen venir acompañados de fuertes movimientos 
+Dentro delos ath y atl de un activo se establecen nuevos max and min estos siempre estaran dentro de los antes mencionados 
+A mayor tiempo transcurra de que el tiempo venga a visitar el hline mas fuerte es la posibilidad del rebota 
+A mayor tiempo sea el hline que el precio rompe mas fuerte es la posibilidad de movimiento 
+TerminologiaSpot price : valor del activo en el momento que elijo mu strike priceAsk price :  precio que voy a pagar cuando compro un contrato de opciones 
+Bid price: Precio que me pagaran cuando vendo Last price; valor real del contratoBanks to use Itrade - 0.50Charles Schwab..b .65Duda : No todos los activos tienen inversos ,que es un inverso , como se llega al insider Insider : se encuentra al final de la pagina 
+H line : horizontal line Websites to read noticias Noticias especificas de tu empresa : finvizNoticias generales , yahoo finance 
+Optionslam , noticias de earnings 
+EstrategiasDebo estar en una estrategia bajista , 
+—-
+Current en tendencia bajista 
+Muy frecuente , en la apertura mas frecuentes aun
+Estrategia del millon se presenta desde una lateralidad 
+Planes 
+Plan 35 % , buscar 35 % 3 veces a la semana 
+Todo lo que exceda el plan sacalo , 
+–Plan 10 % 
+Elegir un activo que tengau por 2 y un inverso
+El dinero en activo debo ser vapaz de dejarlo de 3-6 meses 
+Precio de apertura y cierre 
+Los precio de apertura y cierre constituyen puntos de rebote para el precio durante el dia pesando mucho mas el precio de cierre del dia anterior que el de apertura del mismo dia Nota: Cierre Dia anterior : 20 % , aperture : 10%
+Fases del mercado , acumulacion , tendencia distribucion , tendencia 
+Identifico fases en semanal y mensual , No comprar en fomp , momento muy extenso
+Info General A la hora de operar en tc2000 hora izquierda , 15 min derecha bolinger
+El insider te muestra todas las transacciones de compra y venta de su junta directiva de sus mismas acciones , me voy a encontrar si su junta directiva esta comprando o vendiendo 
+REQUISITOS
+SE CUMPLE, NO se cumple amzn
+apl
+REUNIÓN FED (1 VEZ POR MES)
+Y EARNING (CADA 3 MESES)
+Earning : Estimate Julio 30
+BOLLINGER 15M, HORA Y DÍA
+PROMEDIOS MÓVILES HORA Y DÍA
+PUNTO DE RUPTURA DE LÍNEAS
+DE TENDENCIA
+SALTO (GAP) AL ALZA O
+SALTO (GAP) A LA BAJA
+PRECIO
+BID & ASK
+FECHA DE EXPIRACIÓN
+Basico . 
+Confirmacion : 
+precio de cierre : vela en 15 minsupport – resistance : vela en 1 h medias : vela en   ???  ATH :
+Lineas TENDENCIA    
+las lines de tendencia nunca puede romper un cuerpo de vela 

@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f5f0e6;
+  --foreground: #0f2744;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+input,
+select,
+textarea {
+  @apply border border-investep-navy/30 rounded px-2 py-1 bg-white text-sm;
+}
+
+button[type="submit"] {
+  @apply bg-investep-navy text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-investep-navy/90;
+}
+
+table.data-table {
+  @apply w-full border-collapse text-sm;
+}
+
+table.data-table th,
+table.data-table td {
+  @apply border border-investep-navy/25 px-2 py-1.5 align-top;
+}
+
+table.data-table th {
+  @apply bg-investep-navy text-white font-medium;
+}
+
+.met-yes {
+  @apply text-green-800 font-semibold;
+}
+
+.met-no {
+  @apply text-red-800 font-semibold;
+}
+
+@media print {
+  body {
+    background: white;
+  }
+
+  aside,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  .plan-inversion-page > *:not(#plan-earnings-report) {
+    display: none !important;
+  }
+
+  #plan-earnings-report {
+    display: block !important;
+    border: none !important;
+  }
+}
