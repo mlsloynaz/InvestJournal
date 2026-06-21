@@ -1255,6 +1255,9 @@ export async function triggerFinanceAiMov15mCheck(options?: {
   tradeDate?: string;
   fresh?: boolean;
   simulateMinutesEt?: number;
+  simulateUntilDate?: string;
+  simulateUntilTime?: string;
+  simulationTimeEt?: string;
   symbols?: string[];
   poll1m?: boolean;
   pollingStartTimeEt?: string;
@@ -1283,7 +1286,10 @@ export async function triggerFinanceAiMov15mCheck(options?: {
     manual: options?.manual !== false,
     fresh: options?.fresh === true,
     mode,
-    tradeDate: options?.tradeDate,
+    tradeDate: options?.tradeDate ?? options?.simulateUntilDate,
+    simulateUntilDate: options?.simulateUntilDate,
+    simulateUntilTime: options?.simulateUntilTime,
+    simulationTimeEt: options?.simulationTimeEt ?? options?.simulateUntilTime,
     simulateMinutesEt: options?.simulateMinutesEt,
     symbols: options?.symbols ?? options?.tickersForPolling,
     poll1m: options?.poll1m,
@@ -1342,6 +1348,93 @@ export async function triggerFinanceAiMov15mCheck(options?: {
     status: status.data,
     phase: typeof tick.data.phase === "string" ? tick.data.phase : undefined,
   };
+}
+
+export async function checkFinanceAiMov15mPollingStatus(): Promise<{
+  success: boolean;
+  status?: FinanceAiBolinger15FastMovementStatus;
+  error?: string;
+}> {
+  if (!isFinanceAiConfigured()) {
+    return { success: false, error: "FinanceAI no configurado" };
+  }
+  const result = await getMov15mStatus();
+  if (!result.ok) return { success: false, error: result.error };
+  return { success: true, status: result.data };
+}
+
+export async function startFinanceAiMov15mPolling(options: {
+  symbols?: string[];
+  tickersForPolling?: string[];
+  pollingStartTimeEt?: string;
+  pollingEndTimeEt?: string;
+  simulateUntilDate?: string;
+  simulateUntilTime?: string;
+  simulationTimeEt?: string;
+  tradeDate?: string;
+  simulateMinutesEt?: number;
+}): Promise<{
+  success: boolean;
+  accepted?: boolean;
+  error?: string;
+  message?: string;
+}> {
+  if (!isFinanceAiConfigured()) {
+    return { success: false, error: "FinanceAI no configurado" };
+  }
+  const tick = await postMov15mTick({
+    force: true,
+    async: true,
+    manual: true,
+    mode: "opening_poll",
+    poll1m: true,
+    symbols: options.symbols ?? options.tickersForPolling,
+    tickersForPolling: options.tickersForPolling ?? options.symbols,
+    pollingStartTimeEt: options.pollingStartTimeEt,
+    pollingEndTimeEt: options.pollingEndTimeEt,
+    tradeDate: options.tradeDate ?? options.simulateUntilDate,
+    simulateUntilDate: options.simulateUntilDate,
+    simulateUntilTime: options.simulateUntilTime,
+    simulationTimeEt: options.simulationTimeEt ?? options.simulateUntilTime,
+    simulateMinutesEt: options.simulateMinutesEt,
+  });
+  if (!tick.ok) return { success: false, error: tick.error };
+  if (tick.data.skipped === true) {
+    const msg =
+      (typeof tick.data.message === "string" && tick.data.message) ||
+      (typeof tick.data.error === "string" && tick.data.error) ||
+      "Polling omitido";
+    return { success: false, error: msg };
+  }
+  if (tick.data.accepted === true) {
+    return {
+      success: true,
+      accepted: true,
+      message: "1m polling encolado en AWS",
+    };
+  }
+  return { success: true, message: "Solicitud de polling enviada" };
+}
+
+export async function stopFinanceAiMov15mPolling(): Promise<{
+  success: boolean;
+  error?: string;
+  message?: string;
+}> {
+  if (!isFinanceAiConfigured()) {
+    return { success: false, error: "FinanceAI no configurado" };
+  }
+  const tick = await postMov15mTick({
+    async: true,
+    manual: true,
+    poll1m: false,
+    stopPoll1m: true,
+  });
+  if (!tick.ok) return { success: false, error: tick.error };
+  const msg =
+    (typeof tick.data.message === "string" && tick.data.message) ||
+    "1m polling detenido";
+  return { success: true, message: msg };
 }
 
 export async function submitFinanceAiMov15mTradingOrder(payload: {

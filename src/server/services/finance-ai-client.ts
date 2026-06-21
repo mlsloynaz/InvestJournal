@@ -780,6 +780,8 @@ const MOV15M_STATUS_PATH = "/context/mov15m/status";
 
 const MOV15M_TICK_POLL_MS = 2_000;
 const MOV15M_TICK_POLL_MAX_MS = 900_000;
+/** POST must return 202 quickly; allow cold start + enqueue headroom. */
+const MOV15M_POST_TIMEOUT_MS = 120_000;
 
 function mov15mPhaseMatchesPoll(expectedPhase: string | undefined, phase: string | undefined): boolean {
   if (!expectedPhase) return true;
@@ -841,10 +843,14 @@ export async function postMov15mTick(payload?: {
   pollingStartMinutesEt?: number;
   pollingEndMinutesEt?: number;
   tickersForPolling?: string[];
+  simulateUntilDate?: string;
+  simulateUntilTime?: string;
+  simulationTimeEt?: string;
   mode?: "auto" | "full_assessment" | "full_assessment_inside_b15m" | "premarket_now" | "in_market_now" | "post_market_now" | "opening_poll" | "validation_10am" | "precheck_928";
   tradeDate?: string;
   simulateMinutesEt?: number;
   symbols?: string[];
+  stopPoll1m?: boolean;
 }): Promise<
   | { ok: true; data: Record<string, unknown> }
   | { ok: false; error: string }
@@ -853,7 +859,8 @@ export async function postMov15mTick(payload?: {
     MOV15M_STATUS_PATH,
     {
       method: "POST",
-      body: JSON.stringify({ force: true, mode: "full_assessment_inside_b15m", ...payload }),
+      body: JSON.stringify({ force: true, async: true, mode: "full_assessment_inside_b15m", ...payload }),
+      signal: AbortSignal.timeout(MOV15M_POST_TIMEOUT_MS),
     }
   );
   if (!result.ok) return { ok: false, error: result.error };
@@ -1240,7 +1247,34 @@ export type FinanceAiScheduleSettings = {
   dailyMaintenance?: FinanceAiDailyMaintenanceStatus | null;
   tickersNow?: FinanceAiTickersNow | null;
   rules?: { name: string; state: string; error?: string }[];
+  jobs?: FinanceAiScheduleJob[];
+  nowAutomaticPollingEnabled?: boolean;
   updatedAt?: string | null;
+};
+
+export type FinanceAiScheduleJob = {
+  id: string;
+  label: string;
+  when: string;
+  scheduleNames?: string[];
+  ruleName?: string;
+  scheduleState?: string;
+  scheduleError?: string | null;
+  scheduleKind?: string | null;
+  manualTrigger?: string | null;
+  configFlag?: string | null;
+  globalJobsEnabled?: boolean;
+  canToggleSchedule?: boolean;
+  runtimeStatus?: string;
+  runtimeLabel?: string;
+  lastRunAt?: string | null;
+  lastRunPhase?: string | null;
+  lastRunStatus?: string | null;
+  lastRunMessage?: string | null;
+  lastRunTradeDate?: string | null;
+  lastRunOk?: number | null;
+  lastRunSymbolCount?: number | null;
+  nowAutomaticPollingEnabled?: boolean;
 };
 
 export type FinanceAiNowGroupConfig = {
@@ -1708,6 +1742,7 @@ export async function refreshDailyMaintenance(options?: {
 
 export async function putScheduleSettings(payload: {
   scheduledJobsEnabled?: boolean;
+  nowAutomaticPollingEnabled?: boolean;
   alertsEnabled?: boolean;
   buySellEnabled?: boolean;
   buySellTickers?: string[];

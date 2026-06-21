@@ -72,11 +72,9 @@ export function isE03StrategyFullyMet(strategy: FinanceAiStrategyFit): boolean {
   return total > 0 && met >= total;
 }
 
-/** Show in Outside results when ≥2 mandatory E03 checks met (incl. bb_exposure path). */
-export function e03OutsideTickerVisible(row: E03OutsideTickerRow): boolean {
-  if (!row.success || !row.strategy) return false;
-  if (isE03StrategyFullyMet(row.strategy)) return true;
-  return row.mandatoryMet >= 2;
+/** For now show all E03 rows (no ≥2 mandatory gate). */
+export function e03OutsideTickerVisible(_row: E03OutsideTickerRow): boolean {
+  return true;
 }
 
 export function pickBestE03Strategy(
@@ -144,7 +142,7 @@ export function partitionE03OutsideRows(rows: E03OutsideTickerRow[]): {
     if (pa !== pb) return pb - pa;
     return b.mandatoryMet - a.mandatoryMet;
   };
-  const visible = rows.filter(e03OutsideTickerVisible);
+  const visible = rows;
   return {
     met: visible.filter((r) => r.strategy && isE03StrategyFullyMet(r.strategy)).sort(byProb),
     notMet: visible.filter((r) => !r.strategy || !isE03StrategyFullyMet(r.strategy)).sort(byProb),

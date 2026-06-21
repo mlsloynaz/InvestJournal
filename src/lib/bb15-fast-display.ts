@@ -1432,11 +1432,9 @@ export function resolveBb15RulesMet(row: FinanceAiBolinger15FastMovementTicker):
   return countBb15RulesFromItems(resolveBb15CoreRules(row));
 }
 
-/** Movimientos -15M results — show full pass (4/4) or partial (≥2/4); hide 0–1 checks met. */
-export function bb15TickerVisibleInList(row: FinanceAiBolinger15FastMovementTicker): boolean {
-  if (isBb15StrategyMet(row)) return true;
-  const { met } = resolveBb15RulesMet(row);
-  return met >= 2;
+/** Movimientos -15M results — for now show all tickers (no ≥2/4 gate). */
+export function bb15TickerVisibleInList(_row: FinanceAiBolinger15FastMovementTicker): boolean {
+  return true;
 }
 
 export type Bb15BollingerPlacement = "inside" | "outside";

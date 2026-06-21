@@ -53,7 +53,7 @@ export default async function MarketPage({
   let bb15ConfigWatchlist: string[] = [];
   let catalogResult: Awaited<ReturnType<typeof loadTestingCriteriasCatalog>> = {
     success: false,
-    error: "Catalog not loaded for this tab",
+    error: "No se pudo cargar el catálogo de criterios",
   };
   let loadError: string | null = null;
 
@@ -68,13 +68,11 @@ export default async function MarketPage({
     persisted = await loadPersistedMov15mStatus();
     e03Persisted = await loadPersistedE03OutsideBatch();
     bb15ConfigWatchlist = await listBolinger15Symbols();
+    tickers = await listTickersForTickerContext();
+    catalogResult = await loadTestingCriteriasCatalog();
 
     if (tab === "context") {
-      tickers = await listTickersForTickerContext();
       evaluateTickers = await listMlongTickersForMarket();
-    } else if (tab === "testing-criterias") {
-      tickers = await listTickersForTickerContext();
-      catalogResult = await loadTestingCriteriasCatalog();
     }
   } catch (e) {
     loadError = e instanceof Error ? e.message : "Error al cargar tickers";

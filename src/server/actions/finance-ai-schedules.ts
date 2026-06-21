@@ -125,6 +125,18 @@ export async function setFinanceAiScheduleRuleEnabled(
   return { success: true, settings: result.data };
 }
 
+export async function setFinanceAiNowAutomaticPollingEnabled(
+  enabled: boolean
+): Promise<FinanceAiScheduleActionResult> {
+  if (!isFinanceAiConfigured()) {
+    return { success: false, error: "FinanceAI no configurado." };
+  }
+  const result = await putScheduleSettings({ nowAutomaticPollingEnabled: enabled });
+  if (!result.ok) return { success: false, error: result.error };
+  revalidateSchedulePaths();
+  return { success: true, settings: result.data };
+}
+
 export async function setFinanceAiBuySellEnabled(
   enabled: boolean
 ): Promise<FinanceAiScheduleActionResult> {

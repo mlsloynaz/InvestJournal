@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import type { FinanceAiScheduleSettings } from "@/server/services/finance-ai-client";
-import { setFinanceAiAlertsEnabled } from "@/server/actions/finance-ai";
+import type {
+  FinanceAiScheduleJob,
+  FinanceAiScheduleSettings,
+} from "@/server/services/finance-ai-client";
+import { refreshMarketCalendar } from "@/server/services/finance-ai-client";
+import { setFinanceAiAlertsEnabled, triggerFinanceAiMov15mCheck } from "@/server/actions/finance-ai";
 import {
   getFinanceAiScheduleSettings,
   setFinanceAiBuySellEnabled,
+  setFinanceAiNowAutomaticPollingEnabled,
   setFinanceAiScheduleRuleEnabled,
   setFinanceAiScheduledJobsEnabled,
   syncFinanceAiWatchlistFromBolinger15,
@@ -97,6 +102,35 @@ function ruleIsActive(state: string): boolean {
   return state === "ENABLED";
 }
 
+function runtimeTone(status?: string): string {
+  if (status === "running") return "text-blue-700";
+  if (status === "ok" || status === "enabled") return "text-green-700";
+  if (status === "partial" || status === "skipped") return "text-amber-700";
+  if (status === "failed" || status === "disabled") return "text-red-700";
+  return "text-gray-600";
+}
+
+function jobsFromSettings(settings: FinanceAiScheduleSettings | null): FinanceAiScheduleJob[] {
+  if (Array.isArray(settings?.jobs) && settings.jobs.length > 0) {
+    return settings.jobs;
+  }
+  const rules = Array.isArray(settings?.rules) ? settings.rules : [];
+  return rules.map((rule) => {
+    const meta = SCHEDULE_META[rule.name];
+    return {
+      id: rule.name,
+      label: meta?.label ?? rule.name,
+      when: meta?.when ?? "—",
+      ruleName: rule.name,
+      scheduleState: rule.state,
+      scheduleError: rule.error ?? null,
+      canToggleSchedule: rule.state !== "NOT_FOUND",
+      runtimeStatus: "idle",
+      runtimeLabel: "—",
+    };
+  });
+}
+
 export function FinanceAiSchedulesPanel({
   configured,
   favoriteSymbols,
@@ -108,6 +142,8 @@ export function FinanceAiSchedulesPanel({
   const [message, setMessage] = useState<string | null>(initialError ?? null);
   const [pending, startTransition] = useTransition();
   const [togglingRule, setTogglingRule] = useState<string | null>(null);
+  const [togglingNowPolling, setTogglingNowPolling] = useState(false);
+  const [runningJob, setRunningJob] = useState<string | null>(null);
   const [togglingAlerts, setTogglingAlerts] = useState(false);
   const [togglingBuySell, setTogglingBuySell] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -132,12 +168,32 @@ export function FinanceAiSchedulesPanel({
   const buySellTickers = Array.isArray(settings?.buySellTickers) ? settings.buySellTickers : [];
   const watchlist = Array.isArray(settings?.watchlist) ? settings.watchlist : favoriteSymbols;
   const bb15ToSync = bolinger15Symbols;
+  const jobs = jobsFromSettings(settings);
   const rules = Array.isArray(settings?.rules) ? settings.rules : [];
-  const dailyMaintenance = dailyMaintenanceLive ?? settings?.dailyMaintenance;
-  const activeRules = rules.filter((r) => r.state === "ENABLED").length;
+  const nowAutomaticPollingEnabled =
+    settings?.nowAutomaticPollingEnabled ??
+    jobs.find((j) => j.id === "now_minute")?.nowAutomaticPollingEnabled ??
+    true;
+  const dailyMaintenanceJob = jobs.find((j) => j.id === "daily_maintenance");
+  const dailyMaintenanceStatus =
+    dailyMaintenanceLive ??
+    settings?.dailyMaintenance ??
+    (dailyMaintenanceJob
+      ? {
+          lastRunAt: dailyMaintenanceJob.lastRunAt,
+          lastRunStatus: dailyMaintenanceJob.lastRunStatus ?? dailyMaintenanceJob.runtimeStatus,
+          lastRunMessage: dailyMaintenanceJob.lastRunMessage,
+          lastRunTradeDate: dailyMaintenanceJob.lastRunTradeDate,
+          lastRunOk: dailyMaintenanceJob.lastRunOk,
+          lastRunSymbolCount: dailyMaintenanceJob.lastRunSymbolCount,
+          lastRunFailed: undefined,
+          lastRunSource: undefined,
+        }
+      : null);
+  const activeJobs = jobs.filter((j) => j.scheduleState === "ENABLED").length;
   const jobsSubtitle = `EventBridge + Scheduler · ${
     enabled ? "Permite ejecución" : "Bloqueado"
-  } · ${activeRules}/${rules.length} activos`;
+  } · ${activeJobs}/${jobs.length} schedules activos`;
 
   function onToggleAll() {
     startTransition(async () => {
@@ -167,19 +223,118 @@ export function FinanceAiSchedulesPanel({
         return;
       }
       setSettings(result.settings ?? null);
-      const meta = SCHEDULE_META[ruleName];
-      const updated = result.settings?.rules?.find((r) => r.name === ruleName);
+      const job = result.settings?.jobs?.find((j) => j.ruleName === ruleName);
+      const meta = job ?? { label: SCHEDULE_META[ruleName]?.label ?? ruleName };
+      const updated =
+        job ?? result.settings?.rules?.find((r) => r.name === ruleName);
+      const state = updated && "scheduleState" in updated ? updated.scheduleState : updated?.state;
       const expected = !currentlyActive ? "ENABLED" : "DISABLED";
-      if (updated && updated.state !== expected) {
+      if (state && state !== expected) {
         setMessage(
-          `${meta?.label ?? ruleName}: AWS sigue en «${ruleStatusLabel(updated.state)}»` +
-            (updated.error ? ` — ${updated.error}` : "")
+          `${meta.label ?? ruleName}: AWS sigue en «${ruleStatusLabel(state)}»` +
+            (updated && "scheduleError" in updated && updated.scheduleError
+              ? ` — ${updated.scheduleError}`
+              : updated?.error
+                ? ` — ${updated.error}`
+                : "")
         );
         return;
       }
+      setMessage(`${meta.label ?? ruleName} ${!currentlyActive ? "activado" : "desactivado"}.`);
+    });
+  }
+
+  function onToggleNowAutomaticPolling(currentlyEnabled: boolean) {
+    setTogglingNowPolling(true);
+    setMessage(null);
+    startTransition(async () => {
+      const result = await setFinanceAiNowAutomaticPollingEnabled(!currentlyEnabled);
+      setTogglingNowPolling(false);
+      if (!result.success) {
+        setMessage(result.error ?? "No se pudo actualizar NOW automático.");
+        return;
+      }
+      setSettings(result.settings ?? null);
       setMessage(
-        `${meta?.label ?? ruleName} ${!currentlyActive ? "activado" : "desactivado"}.`
+        !currentlyEnabled
+          ? "NOW automático activado — Lambda cron por minuto habilitado."
+          : "NOW automático desactivado — solo evaluación manual desde Journey."
       );
+    });
+  }
+
+  function onRunJob(job: FinanceAiScheduleJob) {
+    const trigger = job.manualTrigger;
+    if (!trigger) return;
+    setRunningJob(job.id);
+    setMessage(null);
+    if (trigger === "daily_maintenance") {
+      setDailyMaintenanceLive((prev) => ({
+        ...(prev ?? {}),
+        lastRunStatus: "running",
+        lastRunSource: "adhoc",
+        lastRunMessage: "Recolección histórica en curso (D/1h/15m)…",
+        lastRunAt: new Date().toISOString(),
+      }));
+    }
+    startTransition(async () => {
+      try {
+        if (trigger === "daily_maintenance") {
+          const result = await triggerFinanceAiDailyMaintenance();
+          if (!result.success) {
+            setMessage(result.error ?? "No se pudo ejecutar la recolección histórica.");
+            return;
+          }
+          if (result.settings) {
+            setSettings(result.settings);
+            setDailyMaintenanceLive(result.settings.dailyMaintenance ?? null);
+          } else if (result.status) {
+            setDailyMaintenanceLive(result.status);
+          }
+          const status = result.status;
+          const ok = status?.lastRunOk;
+          const total = status?.lastRunSymbolCount;
+          if (status?.lastRunStatus === "skipped") {
+            setMessage(status.lastRunSkipReason ? `Recolección omitida: ${status.lastRunSkipReason}` : "Recolección omitida.");
+          } else if (ok != null && total != null) {
+            setMessage(`Recolección completada — ${ok}/${total} tickers OK (D/1h/15m).`);
+          } else {
+            setMessage(status?.lastRunMessage ?? "Recolección histórica completada.");
+          }
+          return;
+        }
+        if (trigger === "mov15m_session") {
+          const result = await triggerFinanceAiMov15mCheck({ poll1m: true, manual: true });
+          if (!result.success) {
+            setMessage(result.error ?? "No se pudo iniciar Mov15m sesión.");
+            return;
+          }
+          setMessage("Mov15m sesión iniciada — consulta estado en Journey → Inside.");
+          return;
+        }
+        if (trigger === "mov15m_validation") {
+          const result = await triggerFinanceAiMov15mCheck({
+            mode: "full_assessment_inside_b15m",
+            manual: true,
+          });
+          if (!result.success) {
+            setMessage(result.error ?? "No se pudo iniciar validación 10:00.");
+            return;
+          }
+          setMessage("Mov15m validación 10:00 iniciada.");
+          return;
+        }
+        if (trigger === "market_calendar") {
+          const result = await refreshMarketCalendar(undefined, { force: true });
+          if (!result.ok) {
+            setMessage(result.error ?? "No se pudo refrescar calendario.");
+            return;
+          }
+          setMessage("Calendario mercado actualizado en AWS.");
+        }
+      } finally {
+        setRunningJob(null);
+      }
     });
   }
 
@@ -272,6 +427,11 @@ export function FinanceAiSchedulesPanel({
   }
 
   function onTriggerDailyMaintenance() {
+    const job = jobs.find((j) => j.id === "daily_maintenance");
+    if (job) {
+      onRunJob(job);
+      return;
+    }
     setRefreshingDailyMaintenance(true);
     setMessage(null);
     setDailyMaintenanceLive((prev) => ({
@@ -465,56 +625,109 @@ export function FinanceAiSchedulesPanel({
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-gray-500 border-b bg-slate-50/80">
-                <th className="py-2 px-3 font-medium">Schedule</th>
+                <th className="py-2 px-3 font-medium">Job</th>
                 <th className="py-2 px-3 font-medium">Horario</th>
-                <th className="py-2 px-3 font-medium">Estado AWS</th>
-                <th className="py-2 px-3 font-medium text-right">Acción</th>
+                <th className="py-2 px-3 font-medium">Runtime</th>
+                <th className="py-2 px-3 font-medium">Schedule AWS</th>
+                <th className="py-2 px-3 font-medium text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {rules.length === 0 ? (
+              {jobs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-3 px-3 text-xs text-gray-500">
-                    Sin datos de schedules — recarga la página o revisa la conexión con FinanceAI.
+                  <td colSpan={5} className="py-3 px-3 text-xs text-gray-500">
+                    Sin datos de jobs — recarga la página o revisa la conexión con FinanceAI.
                   </td>
                 </tr>
               ) : (
-                rules.map((rule) => {
-                  const meta = SCHEDULE_META[rule.name];
-                  const active = ruleIsActive(rule.state);
-                  const busy = pending && togglingRule === rule.name;
+                jobs.map((job) => {
+                  const ruleName = job.ruleName ?? job.id;
+                  const scheduleState = job.scheduleState ?? "UNKNOWN";
+                  const scheduleActive = ruleIsActive(scheduleState);
+                  const toggling = pending && togglingRule === ruleName;
+                  const running = pending && runningJob === job.id;
+                  const runtimeStatus = job.runtimeStatus ?? "idle";
+                  const runtimeLabel = job.runtimeLabel ?? "—";
+                  const isNowJob = job.configFlag === "nowAutomaticPollingEnabled";
+                  const nowEnabled =
+                    job.nowAutomaticPollingEnabled ?? nowAutomaticPollingEnabled;
                   return (
-                    <tr key={rule.name} className="border-b border-gray-100 last:border-b-0">
+                    <tr key={job.id} className="border-b border-gray-100 last:border-b-0">
                       <td className="py-2.5 px-3">
-                        <p className="font-medium text-investep-navy">
-                          {meta?.label ?? rule.name}
-                        </p>
-                        <p className="text-[10px] font-mono text-gray-400 mt-0.5">{rule.name}</p>
-                      </td>
-                      <td className="py-2.5 px-3 text-xs text-gray-600">
-                        {meta?.when ?? "—"}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <span className={`text-xs font-medium ${ruleStatusTone(rule.state)}`}>
-                          {ruleStatusLabel(rule.state)}
-                        </span>
-                        {rule.error ? (
-                          <p className="text-[10px] text-red-600 mt-0.5">{rule.error}</p>
+                        <p className="font-medium text-investep-navy">{job.label}</p>
+                        {job.ruleName ? (
+                          <p className="text-[10px] font-mono text-gray-400 mt-0.5">{job.ruleName}</p>
                         ) : null}
                       </td>
-                      <td className="py-2.5 px-3 text-right">
-                        <button
-                          type="button"
-                          disabled={pending || rule.state === "NOT_FOUND"}
-                          onClick={() => onToggleRule(rule.name, active)}
-                          className={
-                            active
-                              ? "text-xs px-2.5 py-1 rounded border border-red-300 text-red-800 bg-red-50 hover:bg-red-100 disabled:opacity-40"
-                              : "text-xs px-2.5 py-1 rounded border border-green-500 text-green-900 bg-green-50 hover:bg-green-100 disabled:opacity-40"
-                          }
-                        >
-                          {busy ? "…" : active ? "Desactivar" : "Activar"}
-                        </button>
+                      <td className="py-2.5 px-3 text-xs text-gray-600">{job.when}</td>
+                      <td className="py-2.5 px-3">
+                        <span className={`text-xs font-medium ${runtimeTone(runtimeStatus)}`}>
+                          {runtimeLabel}
+                        </span>
+                        {job.lastRunAt ? (
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            {formatUtcTimestamp(job.lastRunAt)}
+                          </p>
+                        ) : null}
+                        {job.id === "daily_maintenance" && runtimeStatus === "running" ? (
+                          <p className="text-[10px] text-blue-700 mt-0.5">daily_maintenance_running</p>
+                        ) : null}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className={`text-xs font-medium ${ruleStatusTone(scheduleState)}`}>
+                          {ruleStatusLabel(scheduleState)}
+                        </span>
+                        {!enabled ? (
+                          <p className="text-[10px] text-amber-700 mt-0.5">Flag global bloqueado</p>
+                        ) : null}
+                        {job.scheduleError ? (
+                          <p className="text-[10px] text-red-600 mt-0.5">{job.scheduleError}</p>
+                        ) : null}
+                      </td>
+                      <td className="py-2.5 px-3 text-right space-y-1">
+                        <div className="flex flex-wrap justify-end gap-1">
+                          {isNowJob ? (
+                            <button
+                              type="button"
+                              disabled={pending}
+                              onClick={() => onToggleNowAutomaticPolling(nowEnabled)}
+                              className={
+                                nowEnabled
+                                  ? "text-xs px-2.5 py-1 rounded border border-red-300 text-red-800 bg-red-50 hover:bg-red-100 disabled:opacity-40"
+                                  : "text-xs px-2.5 py-1 rounded border border-green-500 text-green-900 bg-green-50 hover:bg-green-100 disabled:opacity-40"
+                              }
+                            >
+                              {pending && togglingNowPolling
+                                ? "…"
+                                : nowEnabled
+                                  ? "Desactivar cron"
+                                  : "Activar cron"}
+                            </button>
+                          ) : job.canToggleSchedule !== false && scheduleState !== "NOT_FOUND" ? (
+                            <button
+                              type="button"
+                              disabled={pending}
+                              onClick={() => onToggleRule(ruleName, scheduleActive)}
+                              className={
+                                scheduleActive
+                                  ? "text-xs px-2.5 py-1 rounded border border-red-300 text-red-800 bg-red-50 hover:bg-red-100 disabled:opacity-40"
+                                  : "text-xs px-2.5 py-1 rounded border border-green-500 text-green-900 bg-green-50 hover:bg-green-100 disabled:opacity-40"
+                              }
+                            >
+                              {toggling ? "…" : scheduleActive ? "Desactivar" : "Activar"}
+                            </button>
+                          ) : null}
+                          {job.manualTrigger ? (
+                            <button
+                              type="button"
+                              disabled={pending || running || runtimeStatus === "running"}
+                              onClick={() => onRunJob(job)}
+                              className="text-xs px-2.5 py-1 rounded border border-sky-400 text-sky-900 bg-sky-50 hover:bg-sky-100 disabled:opacity-40"
+                            >
+                              {running ? "…" : "Ejecutar"}
+                            </button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -544,47 +757,55 @@ export function FinanceAiSchedulesPanel({
             {refreshingDailyMaintenance ? "Recopilando…" : "Recopilar ahora"}
           </button>
         </div>
-        {dailyMaintenance?.lastRunStatus === "running" || refreshingDailyMaintenance ? (
+        {dailyMaintenanceStatus?.lastRunStatus === "running" ||
+        refreshingDailyMaintenance ||
+        runningJob === "daily_maintenance" ? (
           <p className="text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded px-3 py-2">
             Recopilando barras D/1h/15m en AWS… puede tardar varios minutos según tickers.
           </p>
         ) : null}
-        {dailyMaintenance?.lastRunMessage &&
-        dailyMaintenance.lastRunStatus !== "running" &&
-        !refreshingDailyMaintenance ? (
+        {dailyMaintenanceStatus?.lastRunMessage &&
+        dailyMaintenanceStatus.lastRunStatus !== "running" &&
+        !refreshingDailyMaintenance &&
+        runningJob !== "daily_maintenance" ? (
           <p className="text-xs text-gray-700 bg-slate-50 border border-slate-200 rounded px-3 py-2">
-            {dailyMaintenance.lastRunMessage}
+            {dailyMaintenanceStatus.lastRunMessage}
           </p>
         ) : null}
         <dl className="grid gap-2 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-xs text-gray-500">Última ejecución</dt>
-            <dd>{formatUtcTimestamp(dailyMaintenance?.lastRunAt)}</dd>
+            <dd>{formatUtcTimestamp(dailyMaintenanceStatus?.lastRunAt)}</dd>
           </div>
           <div>
             <dt className="text-xs text-gray-500">Origen</dt>
-            <dd>{dailyMaintenance?.lastRunSource ?? "—"}</dd>
+            <dd>{dailyMaintenanceStatus?.lastRunSource ?? "—"}</dd>
           </div>
           <div>
             <dt className="text-xs text-gray-500">Estado</dt>
             <dd>
-              {dailyMaintenance?.lastRunStatus === "running" || refreshingDailyMaintenance
+              {dailyMaintenanceStatus?.lastRunStatus === "running" ||
+              refreshingDailyMaintenance ||
+              runningJob === "daily_maintenance"
                 ? "En curso…"
-                : dailyMaintenance?.lastRunStatus ?? "—"}
+                : dailyMaintenanceStatus?.lastRunStatus ?? dailyMaintenanceJob?.runtimeLabel ?? "—"}
             </dd>
           </div>
           <div>
             <dt className="text-xs text-gray-500">Trade date</dt>
-            <dd>{dailyMaintenance?.lastRunTradeDate ?? "—"}</dd>
+            <dd>{dailyMaintenanceStatus?.lastRunTradeDate ?? "—"}</dd>
           </div>
           <div>
             <dt className="text-xs text-gray-500">Tickers</dt>
             <dd>
-              {dailyMaintenance?.lastRunOk != null && dailyMaintenance?.lastRunSymbolCount != null
-                ? `${dailyMaintenance.lastRunOk}/${dailyMaintenance.lastRunSymbolCount} OK`
-                : "—"}
-              {dailyMaintenance?.lastRunFailed
-                ? ` · ${dailyMaintenance.lastRunFailed} error`
+              {dailyMaintenanceStatus?.lastRunOk != null &&
+              dailyMaintenanceStatus?.lastRunSymbolCount != null
+                ? `${dailyMaintenanceStatus.lastRunOk}/${dailyMaintenanceStatus.lastRunSymbolCount} OK`
+                : dailyMaintenanceJob?.lastRunOk != null && dailyMaintenanceJob?.lastRunSymbolCount != null
+                  ? `${dailyMaintenanceJob.lastRunOk}/${dailyMaintenanceJob.lastRunSymbolCount} OK`
+                  : "—"}
+              {dailyMaintenanceStatus?.lastRunFailed
+                ? ` · ${dailyMaintenanceStatus.lastRunFailed} error`
                 : null}
             </dd>
           </div>

@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import type { FinanceAiMov15mStatus } from "@/lib/finance-ai-types";
 import type { E03OutsideTickerRow } from "@/lib/e03-outside-display";
 import { hasBb15SessionResults } from "@/lib/bb15-fast-display";
-import { defaultMov15mPollingParams, type Mov15mPollingParams } from "@/lib/mov15m-polling";
 import { Mov15mInsidePanel } from "@/components/gestion/Mov15mInsidePanel";
-import { Mov15mPollingControls } from "@/components/gestion/Mov15mPollingControls";
 import { E03OutsideBolingerPanel } from "@/components/gestion/E03OutsideBolingerPanel";
 import {
   useMov15mSession,
@@ -32,25 +29,6 @@ export function Mov15mWorkspace({
   e03PersistedAt = null,
 }: Props) {
   const mov15mWindowActive = useMov15mWindowActive();
-  const configSymbols = useMemo(
-    () =>
-      [...new Set((configWatchlist ?? []).map((s) => s.trim().toUpperCase()).filter(Boolean))].sort(
-        (a, b) => a.localeCompare(b)
-      ),
-    [configWatchlist]
-  );
-  const [pollingParams, setPollingParams] = useState<Mov15mPollingParams>(() =>
-    defaultMov15mPollingParams(configSymbols)
-  );
-
-  useEffect(() => {
-    setPollingParams((prev) => ({
-      ...prev,
-      tickersForPolling:
-        prev.tickersForPolling.length > 0 ? prev.tickersForPolling : configSymbols,
-    }));
-  }, [configSymbols]);
-
   const { loading, status, reload, applyStatus } = useMov15mSession(
     0,
     0,
@@ -131,15 +109,8 @@ export function Mov15mWorkspace({
               Outside E03 · MySQL {e03PersistedAt.slice(0, 19).replace("T", " ")}
             </>
           ) : null}
-          {" · Evaluate = 1m polling (parámetros abajo)"}
+          {" · Evaluate = parámetros en cada panel"}
         </p>
-      ) : null}
-      {financeAiConfigured && configSymbols.length > 0 ? (
-        <Mov15mPollingControls
-          configSymbols={configSymbols}
-          value={pollingParams}
-          onChange={setPollingParams}
-        />
       ) : null}
       <Mov15mInsidePanel
         {...sharedPanelProps}
@@ -147,12 +118,10 @@ export function Mov15mWorkspace({
         showHeaderActions
         panelId="journey-bb15-inside"
         configWatchlist={configWatchlist}
-        pollingParams={pollingParams}
       />
       <E03OutsideBolingerPanel
         financeAiConfigured={financeAiConfigured}
         configWatchlist={configWatchlist}
-        pollingParams={pollingParams}
         initialRows={e03InitialRows}
         persistedAt={e03PersistedAt}
         standalone

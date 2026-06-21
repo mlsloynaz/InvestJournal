@@ -30,7 +30,6 @@ import {
 import {
   defaultMov15mPollingParams,
   mov15mPollingToApiPayload,
-  type Mov15mPollingParams,
 } from "@/lib/mov15m-polling";
 import {
   CollapsibleResultSection,
@@ -43,6 +42,9 @@ import {
 } from "@/components/gestion/MovementTickerCollapsedBadge";
 import { bb15RuleToStrategyCheck } from "@/lib/ticker-strategy-checks-map";
 import { Mov15mExecutePanel } from "@/components/gestion/Mov15mExecutePanel";
+import { Mov15mEvaluateControls } from "@/components/gestion/Mov15mEvaluateControls";
+import { Mov15mPollingConfigButton } from "@/components/gestion/Mov15mPollingConfigButton";
+import { Mov15mPollingConfigModal } from "@/components/gestion/Mov15mPollingConfigModal";
 import { Bb15DirectionArrow } from "@/components/gestion/StrategyMetDirectionArrow";
 import { applyMov15mTriggerResult } from "@/lib/mov15m-poll-wait";
 import { triggerFinanceAiMov15mCheck } from "@/server/actions/finance-ai";
@@ -395,8 +397,6 @@ type Mov15mInsidePanelProps = {
   showHeaderActions?: boolean;
   /** Config → Tickers Movimiento 15M — when set, panels list all these symbols (split inside/outside only). */
   configWatchlist?: string[];
-  /** 1m polling tickers + ET window — sent on Evaluate. */
-  pollingParams?: Mov15mPollingParams;
   panelId?: string;
 };
 
@@ -418,7 +418,6 @@ export function Mov15mInsidePanel({
   placement = "inside",
   showHeaderActions,
   configWatchlist,
-  pollingParams,
   panelId,
 }: Mov15mInsidePanelProps = {}) {
   const headerActions = showHeaderActions ?? placement === "inside";
@@ -460,6 +459,19 @@ export function Mov15mInsidePanel({
     [configWatchlist]
   );
 
+  const [pollingParams, setPollingParams] = useState(() =>
+    defaultMov15mPollingParams(configSymbols)
+  );
+  const [pollingModalOpen, setPollingModalOpen] = useState(false);
+
+  useEffect(() => {
+    setPollingParams((prev) => ({
+      ...prev,
+      tickersForPolling:
+        prev.tickersForPolling.length > 0 ? prev.tickersForPolling : configSymbols,
+    }));
+  }, [configSymbols]);
+
   /** GET status from MySQL snapshot (no AWS on page refresh). */
   const loadStatus = useCallback(async () => {
     setLoadingLocal(true);
@@ -490,7 +502,7 @@ export function Mov15mInsidePanel({
   }, [embedded, onStatusUpdate]);
 
   const handleEvaluate = useCallback(async () => {
-    const effectivePolling = pollingParams ?? defaultMov15mPollingParams(configSymbols);
+    const effectivePolling = pollingParams;
     const tickers =
       effectivePolling.tickersForPolling?.length
         ? effectivePolling.tickersForPolling
@@ -508,9 +520,10 @@ export function Mov15mInsidePanel({
       const applied = await applyMov15mTriggerResult(
         result,
         (status) => {
-          setLastEvalLabel(
-            `${effectivePolling.pollingStartTimeEt}–${effectivePolling.pollingEndTimeEt} ET · ${tickers.length} tickers`
-          );
+          const pollLabel = effectivePolling.poll1mEnabled
+            ? `${effectivePolling.pollingStartTimeEt}–${effectivePolling.pollingEndTimeEt} ET · ${tickers.length} tickers`
+            : `sin 1m poll · ${tickers.length} tickers`;
+          setLastEvalLabel(pollLabel);
           onStatusUpdate?.(status);
           if (!embedded) setStatusLocal(status);
         },
@@ -598,7 +611,7 @@ export function Mov15mInsidePanel({
       : poolSource
       ? `TickersToday15M — ${poolCount} ticker(s) con ≥50% checklist obligatorio · ${resultCount} en panel`
       : configSymbols.length > 0
-      ? `${configSymbols.length} candidatos Movimiento 15M · ${resultCount} con ≥2/4 reglas · inside @ campana`
+      ? `${configSymbols.length} candidatos · ${resultCount} en panel · inside @ campana`
       : windowActive
         ? "En vivo — lectura de status guardado (job 9:30:30 ET o Evaluate)"
         : sessionResults
@@ -630,10 +643,15 @@ export function Mov15mInsidePanel({
             className="text-[10px] px-2 py-1 rounded border border-sky-600 text-sky-800 bg-sky-50 disabled:opacity-50"
             onClick={() => void handleEvaluate()}
             disabled={triggeringNow || loadingLatest}
-            title={`Evaluate — 1m polling ${pollingParams?.pollingStartTimeEt ?? "09:30"}–${pollingParams?.pollingEndTimeEt ?? "10:00"} ET`}
+            title="Evaluate — evaluación mov15m (sin 1m polling por defecto)"
           >
             {triggeringNow ? "Evaluating…" : "Evaluate"}
           </button>
+          <Mov15mPollingConfigButton
+            onClick={() => setPollingModalOpen(true)}
+            disabled={triggeringNow || loadingLatest || configSymbols.length === 0}
+            variant="inside"
+          />
           <button
             type="button"
             className="text-[10px] px-2 py-1 rounded border border-gray-400 text-gray-700 bg-white disabled:opacity-50"
@@ -647,40 +665,21 @@ export function Mov15mInsidePanel({
         ) : null
       }
     >
-      {status?.pre930Readiness && status.pre930Readiness.ready === false ? (
-        <div className="mb-3 rounded border border-rose-300 bg-rose-50 px-3 py-2 text-[11px] text-rose-950">
-          <p className="font-semibold">Pre-9:30 — job movimiento 15M en riesgo</p>
-          <p className="mt-0.5">{status.pre930Readiness.summary}</p>
-          {status.pre930Readiness.tickersToday15MPreview?.count === 0 ? (
-            <p className="mt-1 text-[10px] text-rose-900">
-              TickersToday15M vacío — ningún ticker ≥{status.pre930Readiness.tickersToday15MPreview?.minPassPct ?? 50}%
-              checklist obligatorio.
-            </p>
-          ) : null}
-          {status.pre930Readiness.notReadySymbols?.length ? (
-            <p className="mt-1 text-[10px] text-rose-900">
-              Datos: {status.pre930Readiness.notReadySymbols.slice(0, 12).join(", ")}
-              {(status.pre930Readiness.notReadySymbols.length ?? 0) > 12 ? "…" : ""}
-            </p>
-          ) : null}
-        </div>
-      ) : status?.pre930Readiness?.ready === true ? (
-        <div className="mb-3 rounded border border-emerald-300 bg-emerald-50 px-3 py-2 text-[11px] text-emerald-950">
-          <p className="font-semibold">Pre-9:30 — listo para job automático</p>
-          <p className="mt-0.5">{status.pre930Readiness.summary}</p>
-        </div>
+      {headerActions && configSymbols.length > 0 ? (
+        <Mov15mEvaluateControls
+          value={pollingParams}
+          onChange={setPollingParams}
+          disabled={triggeringNow || loadingLatest}
+        />
       ) : null}
-      {status?.dataPreparation?.ready === false ? (
-        <div className="mb-3 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-950">
-          <p className="font-semibold">Preparación 15M automática incompleta</p>
-          <p className="mt-0.5">{status.dataPreparation.summary}</p>
-          {status.dataPreparation.notReadySymbols?.length ? (
-            <p className="mt-1 text-[10px] text-amber-900">
-              Tickers: {status.dataPreparation.notReadySymbols.join(", ")}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      <Mov15mPollingConfigModal
+        open={pollingModalOpen}
+        onClose={() => setPollingModalOpen(false)}
+        configSymbols={configSymbols}
+        value={pollingParams}
+        onChange={setPollingParams}
+        variant="inside"
+      />
       {headerActions && loading && !status && (
         <p className="text-xs text-gray-500 mb-2">Leyendo status guardado…</p>
       )}
@@ -696,7 +695,7 @@ export function Mov15mInsidePanel({
           {resultCount > 0 ? (
             <span>
               {" "}
-              · Mostrando {resultCount} con ≥2/4 reglas (inside @ campana)
+              · Mostrando {resultCount} ticker(s) (inside @ campana)
             </span>
           ) : null}
         </p>
@@ -711,8 +710,8 @@ export function Mov15mInsidePanel({
           {configSymbols.length === 0
             ? "Sin tickers Movimiento 15M — márcalos en Config → Tickers y guarda."
             : status?.lastRunAt
-              ? `Sin inside con ≥2/4 reglas (${configSymbols.length} candidatos). Última evaluación ${status.lastRunAt}.`
-              : `Sin resultados inside con ≥2/4 reglas (${configSymbols.length} candidatos Movimiento 15M). Pulsa Evaluate.`}
+              ? `Sin resultados inside (${configSymbols.length} candidatos). Última evaluación ${status.lastRunAt}.`
+              : `Sin resultados inside (${configSymbols.length} candidatos Movimiento 15M). Pulsa Evaluate.`}
         </p>
       )}
       {!error && displayRows.length > 0 && (
@@ -735,25 +734,6 @@ export function Mov15mInsidePanel({
           )}
         </div>
       )}
-      {(headerActions ? status?.alerts : undefined)?.length ? (
-        <div className="mt-3 pt-2 border-t border-gray-200">
-          <p className="text-[10px] font-medium text-gray-700 mb-1">Alertas recientes</p>
-          <ul className="text-[10px] text-gray-600 space-y-0.5">
-            {status!.alerts!.slice(0, 5).map((a, i) => (
-              <li key={`${a.symbol}-${a.at}-${i}`}>
-                <span className="font-semibold">{a.symbol}</span>{" "}
-                {a.type === "data_prep_failed" || a.type === "pre930_not_ready" ? (
-                  <span className="text-amber-800">{a.summary}</span>
-                ) : a.type === "pre930_ready" ? (
-                  <span className="text-emerald-800">{a.summary}</span>
-                ) : (
-                  a.summary
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
     </CollapsibleResultSection>
   );
 }

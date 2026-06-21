@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CollapsibleResultSection,
   TickerResultDetails,
@@ -11,7 +11,6 @@ import { TickerCollapsedSummaryBadge } from "@/components/gestion/MovementTicker
 import {
   E03_MANDATORY_RULE_KEYS,
   E03_STRATEGY_ID,
-  e03OutsideTickerVisible,
   isE03MandatoryItem,
   isE03StrategyFullyMet,
   partitionE03OutsideRows,
@@ -30,14 +29,16 @@ import {
 } from "@/lib/strategy-display";
 import { buildTestingCriteriasHref } from "@/lib/testing-criterias-link";
 import { waitForMov15mTriggerResult } from "@/lib/mov15m-poll-wait";
-import { mov15mPollingToApiPayload, type Mov15mPollingParams } from "@/lib/mov15m-polling";
+import { mov15mPollingToApiPayload, defaultMov15mPollingParams } from "@/lib/mov15m-polling";
+import { Mov15mEvaluateControls } from "@/components/gestion/Mov15mEvaluateControls";
+import { Mov15mPollingConfigButton } from "@/components/gestion/Mov15mPollingConfigButton";
+import { Mov15mPollingConfigModal } from "@/components/gestion/Mov15mPollingConfigModal";
 import { loadE03OutsideBatch } from "@/server/actions/e03-outside-status";
 import { triggerFinanceAiMov15mCheck } from "@/server/actions/finance-ai";
 
 type Props = {
   financeAiConfigured?: boolean;
   configWatchlist?: string[];
-  pollingParams?: Mov15mPollingParams;
   initialRows?: E03OutsideTickerRow[];
   persistedAt?: string | null;
   open?: boolean;
@@ -191,7 +192,6 @@ function e03TickerBadge(row: E03OutsideTickerRow) {
 export function E03OutsideBolingerPanel({
   financeAiConfigured = true,
   configWatchlist = [],
-  pollingParams,
   initialRows = [],
   persistedAt = null,
   open: openProp,
@@ -211,6 +211,19 @@ export function E03OutsideBolingerPanel({
     [configWatchlist]
   );
 
+  const [pollingParams, setPollingParams] = useState(() =>
+    defaultMov15mPollingParams(configSymbols)
+  );
+  const [pollingModalOpen, setPollingModalOpen] = useState(false);
+
+  useEffect(() => {
+    setPollingParams((prev) => ({
+      ...prev,
+      tickersForPolling:
+        prev.tickersForPolling.length > 0 ? prev.tickersForPolling : configSymbols,
+    }));
+  }, [configSymbols]);
+
   const [loading, setLoading] = useState(false);
   const [pollProgress, setPollProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -223,27 +236,29 @@ export function E03OutsideBolingerPanel({
     setError(null);
     setPollProgress(null);
     const tickers =
-      pollingParams?.tickersForPolling?.length
+      pollingParams.tickersForPolling?.length
         ? pollingParams.tickersForPolling
         : configSymbols;
-    if (pollingParams) {
-      const poll = await triggerFinanceAiMov15mCheck({
-        ...mov15mPollingToApiPayload({ ...pollingParams, tickersForPolling: tickers }),
-        mode: "full_assessment_inside_b15m",
-        manual: true,
-      });
-      const waited = await waitForMov15mTriggerResult(poll, setPollProgress);
-      if (!waited.ok) {
-        setError(waited.error ?? "Error en polling 1m (mov15m)");
-        setLoading(false);
-        setPollProgress(null);
-        return;
-      }
+    const apiPayload = mov15mPollingToApiPayload({ ...pollingParams, tickersForPolling: tickers });
+    const assess = await triggerFinanceAiMov15mCheck({
+      ...apiPayload,
+      mode: "full_assessment_inside_b15m",
+      manual: true,
+    });
+    const waited = await waitForMov15mTriggerResult(assess, setPollProgress);
+    if (!waited.ok) {
+      setError(
+        waited.error ??
+          (pollingParams.poll1mEnabled ? "Error en polling 1m (mov15m)" : "Error en evaluación mov15m")
+      );
+      setLoading(false);
       setPollProgress(null);
+      return;
     }
+    setPollProgress(null);
     const result = await loadE03OutsideBatch({
       symbols: tickers,
-      fresh: Boolean(pollingParams),
+      fresh: true,
     });
     if (!result.success) {
       setError(result.error ?? "Error cargando E03");
@@ -275,9 +290,8 @@ export function E03OutsideBolingerPanel({
     [configSymbols, financeAiConfigured]
   );
 
-  const visibleRows = rows.filter(e03OutsideTickerVisible);
   const { met: metRows, notMet: notMetRows } = partitionE03OutsideRows(rows);
-  const visibleSymbols = visibleRows.map((r) => r.symbol);
+  const visibleSymbols = rows.map((r) => r.symbol);
   const e03FullHref =
     visibleSymbols.length > 0
       ? buildTestingCriteriasHref({ symbols: visibleSymbols, strategyId: E03_STRATEGY_ID })
@@ -287,7 +301,7 @@ export function E03OutsideBolingerPanel({
     configSymbols.length === 0
       ? "Marca tickers en Config → Tickers → Movimiento 15M"
       : lastLoadedAt
-        ? `${configSymbols.length} candidatos · ${visibleRows.length} con ≥2/${E03_MANDATORY_RULE_KEYS.length} E03 · ${formatStrategyIdLabel(E03_STRATEGY_ID)}`
+        ? `${configSymbols.length} candidatos · ${rows.length} en panel · ${formatStrategyIdLabel(E03_STRATEGY_ID)}`
         : `${configSymbols.length} candidatos Movimiento 15M · pulsa Evaluate o See Latest`;
 
   const renderTickerRow = (row: E03OutsideTickerRow) => (
@@ -325,10 +339,17 @@ export function E03OutsideBolingerPanel({
                 className="text-[10px] px-2 py-1 rounded border border-sky-600 text-sky-800 bg-sky-50 disabled:opacity-50"
                 onClick={() => void runEvaluate()}
                 disabled={loading}
-                title="Evaluate — 1m polling mov15m + E03 checklist (outside @ campana)"
+                title="Evaluate — E03 checklist (sin 1m polling por defecto)"
               >
                 {loading ? "Evaluating…" : "Evaluate"}
               </button>
+            ) : null}
+            {financeAiConfigured && configSymbols.length > 0 ? (
+              <Mov15mPollingConfigButton
+                onClick={() => setPollingModalOpen(true)}
+                disabled={loading}
+                variant="outside"
+              />
             ) : null}
             <button
               type="button"
@@ -343,6 +364,21 @@ export function E03OutsideBolingerPanel({
         ) : null
       }
     >
+      {financeAiConfigured && configSymbols.length > 0 && (
+        <Mov15mEvaluateControls
+          value={pollingParams}
+          onChange={setPollingParams}
+          disabled={loading}
+        />
+      )}
+      <Mov15mPollingConfigModal
+        open={pollingModalOpen}
+        onClose={() => setPollingModalOpen(false)}
+        configSymbols={configSymbols}
+        value={pollingParams}
+        onChange={setPollingParams}
+        variant="outside"
+      />
       {!financeAiConfigured && (
         <p className="text-xs text-amber-900">FinanceAI no configurado.</p>
       )}
@@ -369,13 +405,12 @@ export function E03OutsideBolingerPanel({
       )}
       {pollProgress && <p className="text-xs text-sky-800 mb-2">{pollProgress}</p>}
       {error && <p className="text-xs text-red-600 mb-2">{error}</p>}
-      {!loading && !error && configSymbols.length > 0 && visibleRows.length === 0 && rows.length > 0 && (
+      {!loading && !error && configSymbols.length > 0 && rows.length === 0 && (
         <p className="text-xs text-gray-500">
-          Sin resultados con ≥2/{E03_MANDATORY_RULE_KEYS.length} checks E03 ({configSymbols.length}{" "}
-          candidatos Movimiento 15M).
+          Sin resultados E03 ({configSymbols.length} candidatos Movimiento 15M).
         </p>
       )}
-      {!error && visibleRows.length > 0 && (
+      {!error && rows.length > 0 && (
         <div className="space-y-3">
           {metRows.length > 0 && (
             <div className="space-y-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FinanceAiMov15mStatus } from "@/lib/finance-ai-types";
 import type { E03OutsideTickerRow } from "@/lib/e03-outside-display";
 import { Mov15mWorkspace } from "@/components/gestion/Mov15mWorkspace";
@@ -185,6 +185,7 @@ function MarketWorkspaceContent({
 }
 
 function MarketWorkspaceShell(props: Props) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const urlTab = resolveMarketTab(searchParams);
   const [tab, setTab] = useState<MarketTab>(urlTab);
@@ -193,19 +194,13 @@ function MarketWorkspaceShell(props: Props) {
     setTab(urlTab);
   }, [urlTab]);
 
-  useEffect(() => {
-    const onPopState = () => {
-      setTab(resolveMarketTab(new URLSearchParams(window.location.search)));
-    };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
-
-  const selectTab = useCallback((nextTab: MarketTab, href: string) => {
-    if (nextTab === tab) return;
-    setTab(nextTab);
-    window.history.replaceState(null, "", href);
-  }, [tab]);
+  const selectTab = useCallback(
+    (nextTab: MarketTab, href: string) => {
+      if (nextTab === tab) return;
+      router.push(href);
+    },
+    [router, tab]
+  );
 
   return (
     <>
