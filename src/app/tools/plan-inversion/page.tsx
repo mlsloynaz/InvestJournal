@@ -1,4 +1,5 @@
 import { PlanAccountToggle } from "@/components/investment-plan/PlanAccountToggle";
+import { DatabaseSetupHint } from "@/components/layout/DatabaseSetupHint";
 import { PlanEarningsReport } from "@/components/investment-plan/PlanEarningsReport";
 import { PlanEntryForm } from "@/components/investment-plan/PlanEntryForm";
 import { PlanModeToggle } from "@/components/investment-plan/PlanModeToggle";
@@ -118,15 +119,7 @@ export default async function PlanInversionPage({ searchParams }: Props) {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm space-y-3">
           <p className="font-medium text-red-800">No se pudo cargar el plan</p>
           <p className="text-red-700 text-xs font-mono break-all">{getDbErrorMessage(e)}</p>
-          <p className="text-gray-800">Ejecuta:</p>
-          <ol className="list-decimal list-inside text-gray-800 space-y-1">
-            <li>
-              <code className="bg-white px-1">docker compose up -d</code>
-            </li>
-            <li>
-              <code className="bg-white px-1">npm run setup</code>
-            </li>
-          </ol>
+          <DatabaseSetupHint compact />
         </div>
       </div>
     );

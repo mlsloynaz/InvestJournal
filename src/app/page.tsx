@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { format } from "date-fns";
+import { DatabaseSetupHint } from "@/components/layout/DatabaseSetupHint";
 import { DashboardTodayNotes } from "@/components/dashboard/DashboardTodayNotes";
 import { TickerSearch } from "@/components/dashboard/TickerSearch";
 import { TickerTile } from "@/components/dashboard/TickerTile";
@@ -88,31 +89,3 @@ export default async function DashboardPage() {
   );
 }
 
-function DatabaseSetupHint() {
-  return (
-    <div className="max-w-lg space-y-4">
-      <h1 className="text-2xl font-bold text-investep-navy">InvestJournal</h1>
-      <p className="text-sm text-gray-700">
-        La base de datos no está disponible. Sigue estos pasos:
-      </p>
-      <ol className="list-decimal list-inside text-sm space-y-2 text-gray-800">
-        <li>
-          <code className="bg-white px-1">docker compose up -d</code>
-        </li>
-        <li>
-          Copia <code className="bg-white px-1">.env.example</code> a{" "}
-          <code className="bg-white px-1">.env</code>
-        </li>
-        <li>
-          <code className="bg-white px-1">npm install</code>
-        </li>
-        <li>
-          <code className="bg-white px-1">npx prisma db push</code>
-        </li>
-        <li>
-          <code className="bg-white px-1">npm run dev</code>
-        </li>
-      </ol>
-    </div>
-  );
-}

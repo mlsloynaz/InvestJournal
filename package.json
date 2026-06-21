@@ -10,17 +10,23 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
+    "db:seed-rango": "node scripts/seed-rango-optimo.mjs",
+    "db:import-rango": "node scripts/import-rango-optimo-xlsx.mjs",
     "db:studio": "prisma studio",
     "setup": "prisma generate && prisma db push",
+    "db:start": "scripts\\start-mysql.cmd",
+    "package": "node scripts/package-build.mjs",
     "import:strategies": "node scripts/import-strategies-from-docx.mjs"
   },
   "dependencies": {
-    "@prisma/client": "6.19.0",
+    "@prisma/client": "^6.19.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "mermaid": "^11.15.0",
     "next": "^15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.25.56"
   },
   "devDependencies": {
@@ -31,7 +37,7 @@
     "eslint": "^9.28.0",
     "eslint-config-next": "^15.3.3",
     "postcss": "^8.5.4",
-    "prisma": "6.19.0",
+    "prisma": "^6.19.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3"

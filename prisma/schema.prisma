@@ -13,13 +13,62 @@ model Ticker {
   name       String?  @db.VarChar(128)
   notes      String?  @db.Text
   isFavorite Boolean  @default(false) @map("is_favorite")
+  journalExcluded Boolean @default(false) @map("journal_excluded")
+  mshort         Boolean  @default(false) @map("mshort")
+  mlong          Boolean  @default(false) @map("mlong")
   createdAt  DateTime @default(now()) @map("created_at")
+
+  financeAiStatus    String?   @map("finance_ai_status") @db.VarChar(32)
+  financeAiSyncedAt  DateTime? @map("finance_ai_synced_at")
+  financeAiLastBarAt String?   @map("finance_ai_last_bar_at") @db.VarChar(32)
+  financeAiError     String?   @map("finance_ai_error") @db.Text
+
+  financeAiPremarketAt       DateTime? @map("finance_ai_premarket_at")
+  financeAiPremarketMode     String?   @map("finance_ai_premarket_mode") @db.VarChar(16)
+  financeAiPremarketBias     String?   @map("finance_ai_premarket_bias") @db.VarChar(32)
+  financeAiPremarketRevision Int?      @map("finance_ai_premarket_revision")
+  financeAiPremarketDate     String?   @map("finance_ai_premarket_date") @db.VarChar(16)
+  financeAiLiveEligible      Boolean   @default(false) @map("finance_ai_live_eligible")
+  financeAiBb15Pool            Boolean   @default(false) @map("finance_ai_bb15_pool")
+  financeAiPremarketGapEntry Boolean   @default(false) @map("finance_ai_premarket_gap_entry")
+  financeAiNowPollInterval   FinanceAiNowPollInterval? @map("finance_ai_now_poll_interval")
+  financeAiNowLastPollAt     DateTime? @map("finance_ai_now_last_poll_at")
 
   tickerWeeks    TickerWeek[]
   analysisEntries AnalysisEntry[]
   earningsEvents  EarningsEvent[]
+  nextMovements  NextMovement[]
 
   @@map("tickers")
+}
+
+enum FinanceAiNowPollInterval {
+  M1  @map("1")
+  M5  @map("5")
+  M10 @map("10")
+  M30 @map("30")
+  H1  @map("1h")
+}
+
+enum OptionOperation {
+  CALL @map("call")
+  PUT  @map("put")
+}
+
+/// Planned option movements (call/put) with entry and exit prices.
+model NextMovement {
+  id         Int              @id @default(autoincrement())
+  tickerId   Int              @map("ticker_id")
+  operation  OptionOperation
+  priceEntry Decimal          @map("price_entry") @db.Decimal(12, 4)
+  priceExit  Decimal?         @map("price_exit") @db.Decimal(12, 4)
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  ticker Ticker @relation(fields: [tickerId], references: [id], onDelete: Cascade)
+
+  @@index([tickerId])
+  @@map("next_movements")
 }
 
 model Week {
@@ -196,15 +245,6 @@ model EarningsOutcome {
   @@map("earnings_outcomes")
 }
 
-model FedMeeting {
-  id          Int      @id @default(autoincrement())
-  meetingDate DateTime @unique @map("meeting_date") @db.Date
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  @@map("fed_meetings")
-}
-
 model NoteTypeConfig {
   id        Int     @id @default(autoincrement())
   code      String  @unique @db.VarChar(32)
@@ -240,6 +280,75 @@ model InvestmentPlanConfig {
   updatedAt          DateTime @updatedAt @map("updated_at")
 
   @@map("investment_plan_config")
+}
+
+/// Singleton — last Market AI journey CheckStatus snapshot (overwritten each check).
+model MarketAiJourneySnapshot {
+  id           Int      @id @default(1)
+  tradeDate    String   @map("trade_date") @db.VarChar(16)
+  checkedAt    DateTime @map("checked_at")
+  snapshotJson String   @map("snapshot_json") @db.LongText
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("market_ai_journey_snapshot")
+}
+
+/// Singleton — last BB15 change-trend status from FinanceAI (shown on page load without AWS).
+model Bb15ChangeTrendSnapshot {
+  id           Int       @id @default(1)
+  tradeDate    String?   @map("trade_date") @db.VarChar(16)
+  lastRunAt    DateTime? @map("last_run_at")
+  lastRunPhase String?   @map("last_run_phase") @db.VarChar(32)
+  statusJson   String    @map("status_json") @db.LongText
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("bb15_change_trend_snapshot")
+}
+
+/// Singleton — last Outside Bolinger (E03) batch evaluation for Market bb15 tab.
+model E03OutsideSnapshot {
+  id        Int       @id @default(1)
+  tradeDate String?   @map("trade_date") @db.VarChar(16)
+  rowsJson  String    @map("rows_json") @db.LongText
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("e03_outside_snapshot")
+}
+
+/// Reference optimal price range per ticker (strike selection).
+model RangoOptimo {
+  id              Int      @id @default(autoincrement())
+  symbol          String   @unique @db.VarChar(16)
+  rangoOptimoLow  Decimal? @map("rango_optimo_low") @db.Decimal(12, 4)
+  rangoOptimoHigh Decimal? @map("rango_optimo_high") @db.Decimal(12, 4)
+  minPrice        Decimal? @map("min_price") @db.Decimal(12, 4)
+  maxPrice        Decimal? @map("max_price") @db.Decimal(12, 4)
+  priceOptimo     Decimal? @map("price_optimo") @db.Decimal(12, 4)
+  nombre          String?  @db.VarChar(128)
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("rango_optimo")
+}
+
+/// Key-value app settings (e.g. last rango óptimo import date).
+model GeneralSetting {
+  key       String   @id @db.VarChar(64)
+  value     String?  @db.VarChar(255)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("general_settings")
+}
+
+/// NYSE / equity session dates excluded from trading (holidays, closures).
+model NoTradingDay {
+  tradeDate DateTime @id @map("trade_date") @db.Date
+  label     String?  @db.VarChar(128)
+  source    String?  @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("no_trading_days")
 }
 
 /// Starting capital — set once per mode (35%/10%) and real/practice track.

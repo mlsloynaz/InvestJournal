@@ -12,9 +12,11 @@ const SECTION_REQUIREMENTS = "## Requisitos";
 const SECTION_BEST_FOR = "## Mejor para";
 const SECTION_COMMON_MISTAKE = "## Error común";
 
+export const DEFAULT_STRATEGIES_MD_DIR = "C:\\dta\\strategies";
+
 export function getStrategiesBaseDir(): string {
   const fromEnv = process.env.STRATEGIES_MD_DIR?.trim();
-  return fromEnv || "C:\\dta\\mio\\strategies";
+  return fromEnv || DEFAULT_STRATEGIES_MD_DIR;
 }
 
 export function strategyMarkdownFilePath(strategyId: number, customPath?: string | null): string {

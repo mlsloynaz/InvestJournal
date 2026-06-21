@@ -21,6 +21,11 @@
 # misc
 .DS_Store
 *.pem
+build-log*.txt
+build-docs.txt
+temp-notas-i/
+temp-notas-i.zip
+*.zip
 
 # debug
 npm-debug.log*
@@ -35,6 +40,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma / database dumps
+/mysql-data/
+mysql-data.zip
+*.sql.gz
+
+# build / distribution packages
+/dist/
+*.tar
+*.tar.gz
 
 # prisma
 /prisma/migrations/**/migration_lock.toml

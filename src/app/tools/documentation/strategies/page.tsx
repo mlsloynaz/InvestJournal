@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { DocsBackLink } from "@/components/documentation/DocsBackLink";
+import { DatabaseSetupHint } from "@/components/layout/DatabaseSetupHint";
 import { StrategyCreateForm } from "@/components/strategies/StrategyCreateForm";
 import { StrategyDetail } from "@/components/strategies/StrategyDetail";
 import { StrategyList } from "@/components/strategies/StrategyList";
 import { getDbErrorMessage } from "@/lib/db-error";
-import { TOOLS_STRATEGIES_PATH } from "@/lib/tools-paths";
-import { getStrategy, listStrategiesForCrud } from "@/server/actions/strategies";
+import { TOOLS_STRATEGIES_DOCS_PATH, TOOLS_STRATEGIES_PATH } from "@/lib/tools-paths";
+import { getStrategyWithMarkdown, listStrategiesForCrud } from "@/server/actions/strategies";
+import { strategyGraphApiUrl } from "@/lib/strategy-graph-url";
 
 type Props = {
   searchParams: Promise<{ id?: string; new?: string }>;
@@ -15,7 +17,7 @@ export default async function ToolsStrategiesPage({ searchParams }: Props) {
   const { id: idParam, new: newParam } = await searchParams;
 
   let strategies: Awaited<ReturnType<typeof listStrategiesForCrud>> = [];
-  let selected: Awaited<ReturnType<typeof getStrategy>> = null;
+  let selected: Awaited<ReturnType<typeof getStrategyWithMarkdown>> = null;
   let pageError: string | null = null;
 
   const selectedId =
@@ -24,7 +26,7 @@ export default async function ToolsStrategiesPage({ searchParams }: Props) {
   try {
     strategies = await listStrategiesForCrud();
     if (selectedId != null) {
-      selected = await getStrategy(selectedId);
+      selected = await getStrategyWithMarkdown(selectedId);
     }
   } catch (e) {
     pageError = getDbErrorMessage(e);
@@ -42,17 +44,7 @@ export default async function ToolsStrategiesPage({ searchParams }: Props) {
             Suele faltar la tabla o una columna nueva. En PowerShell, desde la carpeta del
             proyecto:
           </p>
-          <ol className="list-decimal list-inside text-gray-800 space-y-1">
-            <li>
-              <code className="bg-white px-1">docker compose up -d</code>
-            </li>
-            <li>
-              <code className="bg-white px-1">npm run setup</code>
-            </li>
-            <li>
-              Reinicia <code className="bg-white px-1">npm run dev</code>
-            </li>
-          </ol>
+          <DatabaseSetupHint compact />
           <Link href={TOOLS_STRATEGIES_PATH} className="text-investep-navy underline text-sm">
             Reintentar
           </Link>
@@ -63,7 +55,7 @@ export default async function ToolsStrategiesPage({ searchParams }: Props) {
 
   if (selectedId != null && !selected) {
     return (
-      <div className="space-y-4 max-w-4xl">
+      <div className="space-y-4 w-full">
         <DocsBackLink />
         <h1 className="text-2xl font-bold text-investep-navy">Strategies</h1>
         <p className="text-sm text-gray-600">Estrategia no encontrada.</p>
@@ -75,12 +67,17 @@ export default async function ToolsStrategiesPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 w-full">
       <DocsBackLink />
       <header>
         <h1 className="text-2xl font-bold text-investep-navy">Strategies</h1>
         <p className="text-sm text-gray-600 mt-1">
           Crear, ver, editar y eliminar estrategias (gráfico, requisitos, mejor para, error común).
+        </p>
+        <p className="text-sm mt-2">
+          <Link href={TOOLS_STRATEGIES_DOCS_PATH} className="text-investep-navy font-medium underline">
+            Ver documentación Markdown (solo lectura) →
+          </Link>
         </p>
       </header>
 
@@ -90,27 +87,26 @@ export default async function ToolsStrategiesPage({ searchParams }: Props) {
         <h2 className="text-sm font-semibold text-investep-navy uppercase tracking-wide">
           Listado
         </h2>
-        <StrategyList strategies={strategies} selectedId={selected?.id ?? null} />
+        <StrategyList strategies={strategies} selectedId={selected?.strategy.id ?? null} />
       </section>
 
       {selected ? (
         <section className="space-y-2 pt-4 border-t border-investep-navy/20">
           <div className="flex flex-wrap justify-between gap-2 items-center">
             <h2 className="text-sm font-semibold text-investep-navy uppercase tracking-wide">
-              Editar: {selected.name}
+              Editar: {selected.strategy.name}
             </h2>
             <Link href={TOOLS_STRATEGIES_PATH} className="text-xs text-investep-navy underline">
               Cerrar detalle
             </Link>
           </div>
           <StrategyDetail
-            id={selected.id}
-            name={selected.name}
-            bestFor={selected.bestFor}
-            commonMistake={selected.commonMistake}
-            graphPath={selected.graphPath}
-            graphFileName={selected.graphFileName}
-            requirements={selected.requirements}
+            id={selected.strategy.id}
+            name={selected.strategy.name}
+            bestFor={selected.markdown.bestFor || selected.strategy.bestFor}
+            commonMistake={selected.markdown.commonMistake}
+            graphUrl={strategyGraphApiUrl(selected.strategy.id, selected.markdown.graph)}
+            requirements={selected.markdown.requirements}
           />
         </section>
       ) : (

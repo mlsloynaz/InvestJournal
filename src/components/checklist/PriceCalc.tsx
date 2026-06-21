@@ -1,26 +1,12 @@
 "use client";
 
 import { useState } from "react";
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
-
-function calc35(value: number): number {
-  return round2(value * 1.35 + 0.02);
-}
-
-function calc10(value: number): number {
-  return round2(value * 1.1 + 0.02);
-}
-
-function calcRisk(value: number): number {
-  return round2(value * 0.8);
-}
-
-function formatResult(n: number): string {
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-}
+import {
+  calc10,
+  calc35,
+  calcRisk,
+  formatCalcResult,
+} from "@/lib/price-calc";
 
 type PriceCalcProps = {
   variant?: "default" | "sidebar";
@@ -98,7 +84,7 @@ export function PriceCalc({ variant = "default" }: PriceCalcProps) {
             >
               <p className="text-[10px] font-semibold uppercase tracking-wide text-white/70">35%</p>
               <p className="text-xl font-bold tabular-nums text-investep-gold leading-tight mt-0.5">
-                {formatResult(r35)}
+                {formatCalcResult(r35)}
               </p>
             </div>
             <div
@@ -108,7 +94,7 @@ export function PriceCalc({ variant = "default" }: PriceCalcProps) {
             >
               <p className="text-[10px] font-semibold uppercase tracking-wide text-white/70">10%</p>
               <p className="text-xl font-bold tabular-nums text-investep-gold leading-tight mt-0.5">
-                {formatResult(r10)}
+                {formatCalcResult(r10)}
               </p>
             </div>
           </div>
@@ -128,7 +114,7 @@ export function PriceCalc({ variant = "default" }: PriceCalcProps) {
               valid ? "text-red-300" : "text-red-400/50"
             }`}
           >
-            {valid && rRisk != null ? formatResult(rRisk) : "—"}
+            {valid && rRisk != null ? formatCalcResult(rRisk) : "—"}
           </p>
         </div>
 
@@ -181,23 +167,23 @@ export function PriceCalc({ variant = "default" }: PriceCalcProps) {
           <div className="grid sm:grid-cols-2 gap-2">
             <p>
               <span className="text-gray-600">35%:</span>{" "}
-              <strong className="text-investep-navy">{formatResult(calc35(value))}</strong>
+              <strong className="text-investep-navy">{formatCalcResult(calc35(value))}</strong>
             </p>
             <p>
               <span className="text-gray-600">10%:</span>{" "}
-              <strong className="text-investep-navy">{formatResult(calc10(value))}</strong>
+              <strong className="text-investep-navy">{formatCalcResult(calc10(value))}</strong>
             </p>
           </div>
           <p className="rounded-md bg-red-50 border border-red-200 px-2 py-1.5">
             <span className="text-red-700 font-semibold uppercase text-xs tracking-wide">Risk:</span>{" "}
-            <strong className="text-red-600 text-lg tabular-nums">{formatResult(calcRisk(value))}</strong>
+            <strong className="text-red-600 text-lg tabular-nums">{formatCalcResult(calcRisk(value))}</strong>
             <span className="text-red-600/70 text-xs ml-1">(× 0.80)</span>
           </p>
         </div>
       )}
       {lastLabel != null && lastResult != null && (
         <p className="text-sm bg-investep-cream/80 rounded px-2 py-1">
-          Último ({lastLabel}): <strong>{formatResult(lastResult)}</strong>
+          Último ({lastLabel}): <strong>{formatCalcResult(lastResult)}</strong>
         </p>
       )}
     </div>

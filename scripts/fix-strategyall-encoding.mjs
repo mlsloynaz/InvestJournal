@@ -1,0 +1,98 @@
+import fs from "fs";
+
+const filePath = "C:/dta/strategies/strategyall.md";
+let text = fs.readFileSync(filePath, "utf8");
+
+if (text.includes("\uFFFD")) {
+  text = new TextDecoder("windows-1252").decode(fs.readFileSync(filePath));
+}
+
+const pairs = [
+  [/Panorama \? Requisitos \? Panorama final \? Ejecuci\u00f3n/g, "Panorama \u2192 Requisitos \u2192 Panorama final \u2192 Ejecuci\u00f3n"],
+  [/\(Jue PM \/ Vie AM \? semana siguiente\)/g, "(Jue PM / Vie AM \u2192 semana siguiente)"],
+  [/Tendencia previa \?2 d\u00edas/g, "Tendencia previa \u22652 d\u00edas"],
+  [/Tendencia fuerte \?2 d\u00edas/g, "Tendencia fuerte \u22652 d\u00edas"],
+  [/Bajista\?CALL \/ Alcista\?PUT/g, "Bajista\u2192CALL / Alcista\u2192PUT"],
+  [/D\? H\? \? CALL \/ D\? H\? \? PUT/g, "D\u2191 H\u2193 \u2192 CALL / D\u2193 H\u2191 \u2192 PUT"],
+  [/Tendencia\? \+ gap\? \? \*\*PUT\*\* \/ Tendencia\? \+ gap\? \? \*\*CALL\*\*/g, "Tendencia\u2191 + gap\u2191 \u2192 **PUT** / Tendencia\u2193 + gap\u2193 \u2192 **CALL**"],
+  [/Gap\? \+ sube \? CALL \/ Gap\? \+ baja \? PUT/g, "Gap\u2193 + sube \u2192 CALL / Gap\u2191 + baja \u2192 PUT"],
+  [/\u00bfKill switch\? \? S\u00cd \? STOP/g, "\u00bfKill switch? \u2192 S\u00cd \u2192 STOP"],
+  [/\u00bftendencia \?2 d\u00edas\?/g, "\u00bftendencia \u22652 d\u00edas?"],
+  [/E04 \(\?5 min\) \? E03/g, "E04 (\u22645 min) \u2192 E03"],
+  [/\) \? E02 \(rebote MA20 D\) \? E01/g, ") \u2192 E02 (rebote MA20 D) \u2192 E01"],
+  [/Matriz de resultados \? elegir/g, "Matriz de resultados \u2192 elegir"],
+  [/\u00bfFED hoy\? \? \*\*STOP\*\*/g, "\u00bfFED hoy? \u2192 **STOP**"],
+  [/\u00bfEarnings hoy\? \? \*\*STOP\*\*/g, "\u00bfEarnings hoy? \u2192 **STOP**"],
+  [/kill switch \? \*\*ninguna/g, "kill switch \u2192 **ninguna"],
+  [/sube \? CALL; gap arriba \+ baja \? PUT/g, "sube \u2192 CALL; gap arriba + baja \u2192 PUT"],
+  [/entrar en \*\*\?5 min\*\*/g, "entrar en **\u22645 min**"],
+  [/\*\*VERDE\*\* \? CALL\/PUT \+ l\u00edmite \? gestionar/g, "**VERDE** \u2192 CALL/PUT + l\u00edmite \u2192 gestionar"],
+  [/\(no lateral\) \? continuar/g, "(no lateral) \u2192 continuar"],
+  [/tendencia \?2 d\u00edas \u2014/g, "tendencia \u22652 d\u00edas \u2014"],
+  [/gap alcista \? \*\*PUT\*\* \u00b7 tendencia bajista \? \*\*CALL\*\*/g, "gap alcista \u2192 **PUT** \u00b7 tendencia bajista \u2192 **CALL**"],
+  [/Panorama D \? H \? 15m/g, "Panorama D \u2192 H \u2192 15m"],
+  [/\u00bfTendencia \?2 d\u00edas/g, "\u00bfTendencia \u22652 d\u00edas"],
+  [/A\?B trazada/g, "A\u2192B trazada"],
+  [/CALL: D\? H\? \?PM respeta 15\? \*\*H\?\*\* C/g, "CALL: D\u2191 H\u2193 \u2193PM respeta 15\u2191 **H\u2191** C"],
+  [/PUT: D\? H\? \?PM respeta 15\? \*\*H\?\*\* P/g, "PUT: D\u2193 H\u2191 \u2191PM respeta 15\u2193 **H\u2193** P"],
+  [/\*\*0 VERDE\*\* \? no operar/g, "**0 VERDE** \u2192 no operar"],
+  [/\*\*1 VERDE\*\* \? operar esa/g, "**1 VERDE** \u2192 operar esa"],
+  [/\*\*2\+ AMARILLO\*\* \? esperar/g, "**2+ AMARILLO** \u2192 esperar"],
+  [/Vie AM \? \*\*semana siguiente\*\*/g, "Vie AM \u2192 **semana siguiente**"],
+  [/^\? FASE /gm, "\u25a1 FASE "],
+  [/^\? FINAL/gm, "\u25a1 FINAL"],
+  [/^  \? FED \/ earnings \? STOP/gm, "  \u25a1 FED / earnings \u2192 STOP"],
+  [/^  \? BB:/gm, "  \u25a1 BB:"],
+  [/^  \? MAs:/gm, "  \u25a1 MAs:"],
+  [/^  \? Edge lines/gm, "  \u25a1 Edge lines"],
+  [/^  \? Tama\u00f1o gap/gm, "  \u25a1 Tama\u00f1o gap"],
+  [/\(\?5 min tras 9:30\)/g, "(\u22645 min tras 9:30)"],
+  [/^  \? BB15 ayer/gm, "  \u25a1 BB15 ayer"],
+  [/^  \? Gap extremo/gm, "  \u25a1 Gap extremo"],
+  [/^  \? Precio ya revierte/gm, "  \u25a1 Precio ya revierte"],
+  [/^  \? VERDE\? \? CALL\/PUT \+ l\u00edmite \? DONE/gm, "  \u25a1 VERDE? \u2192 CALL/PUT + l\u00edmite \u2192 DONE"],
+  [/^  \? ROJO\? \? continuar/gm, "  \u25a1 ROJO? \u2192 continuar"],
+  [/^  \? Tendencia H \?2d/gm, "  \u25a1 Tendencia H \u22652d"],
+  [/^  \? Gap anormal/gm, "  \u25a1 Gap anormal"],
+  [/^  \? 1\.\u00aa vela/gm, "  \u25a1 1.\u00aa vela"],
+  [/^  \? Vol H cruza/gm, "  \u25a1 Vol H cruza"],
+  [/^  \? VERDE\? \? PUT\/CALL \? objetivo/gm, "  \u25a1 VERDE? \u2192 PUT/CALL \u2192 objetivo"],
+  [/^  \? MA20 D\u00cdA marcada/gm, "  \u25a1 MA20 D\u00cdA marcada"],
+  [/^  \? D\? H\? \(CALL\) o D\? H\? \(PUT\)/gm, "  \u25a1 D\u2191 H\u2193 (CALL) o D\u2193 H\u2191 (PUT)"],
+  [/^  \? Acercamiento/gm, "  \u25a1 Acercamiento"],
+  [/^  \? Respeta nivel/gm, "  \u25a1 Respeta nivel"],
+  [/^  \? Rebote 15m/gm, "  \u25a1 Rebote 15m"],
+  [/^  \? Vela H completa/gm, "  \u25a1 Vela H completa"],
+  [/^  \? VERDE\? \? CALL\/PUT$/gm, "  \u25a1 VERDE? \u2192 CALL/PUT"],
+  [/^  \? Tendencia \?2 d\u00edas \+ l\u00ednea A\?B/gm, "  \u25a1 Tendencia \u22652 d\u00edas + l\u00ednea A\u2192B"],
+  [/^  \? Rompe l\u00ednea/gm, "  \u25a1 Rompe l\u00ednea"],
+  [/^  \? Punto medio 15m/gm, "  \u25a1 Punto medio 15m"],
+  [/^  \? No expuesto/gm, "  \u25a1 No expuesto"],
+  [/^  \? VERDE\? \? CALL\/PUT \u00b7 plan/gm, "  \u25a1 VERDE? \u2192 CALL/PUT \u00b7 plan"],
+  [/^  \? Si 0 VERDE \? no operar/gm, "  \u25a1 Si 0 VERDE \u2192 no operar"],
+  [/^  \? Si 1 VERDE \? operar esa/gm, "  \u25a1 Si 1 VERDE \u2192 operar esa"],
+  [/^  \? Si 2\+ AMARILLO \? esperar/gm, "  \u25a1 Si 2+ AMARILLO \u2192 esperar"],
+  [/^  \? Vencimiento:/gm, "  \u25a1 Vencimiento:"],
+  [/ROJO  \? Tendencia/g, "ROJO  \u2192 Tendencia"],
+  [/VERDE \? 5 req\. \+ panorama final OK \? CALL\/PUT/g, "VERDE \u2192 5 req. + panorama final OK \u2192 CALL/PUT"],
+  [/ROJO  \? Sin MA20/g, "ROJO  \u2192 Sin MA20"],
+  [/AMARILLO \? Rebote/g, "AMARILLO \u2192 Rebote"],
+  [/VERDE \? Vela H completa/g, "VERDE \u2192 Vela H completa"],
+  [/ROJO  \? Lateral/g, "ROJO  \u2192 Lateral"],
+  [/AMARILLO \? 1\.\u00aa vela/g, "AMARILLO \u2192 1.\u00aa vela"],
+  [/VERDE \? 4 req\. \+ volumen H cruza roja \? PUT\/CALL \? objetivo/g, "VERDE \u2192 4 req. + volumen H cruza roja \u2192 PUT/CALL \u2192 objetivo"],
+  [/ROJO  \? PM no lateral/g, "ROJO  \u2192 PM no lateral"],
+  [/AMARILLO \? Gap OK/g, "AMARILLO \u2192 Gap OK"],
+  [/VERDE \? 3 req\./g, "VERDE \u2192 3 req."],
+  [/Parser markdown \? playbooks/g, "Parser markdown \u2192 playbooks"],
+  [/^    \? NO$/gm, "    \u2193 NO"],
+  [/^    \?$/gm, "    \u2193"],
+  [/^  \?$/gm, "  \u2193"],
+];
+
+for (const [pattern, replacement] of pairs) {
+  text = text.replace(pattern, replacement);
+}
+
+fs.writeFileSync(filePath, text, "utf8");
+console.log("Fixed", filePath, "remaining ?", (text.match(/ \? /g) || []).length);

@@ -1,13 +1,52 @@
-import { createTicker, listTickers } from "@/server/actions/tickers";
-import { TickerFavoriteToggle } from "@/components/config/TickerFavoriteToggle";
+import { BuySellTickersPanel } from "@/components/config/BuySellTickersPanel";
+import { JournalTickersPanel } from "@/components/config/JournalTickersPanel";
+import { TickerMlongSettingsPanel } from "@/components/config/TickerMlongSettingsPanel";
+import { TickerSettingsPanel } from "@/components/config/TickerSettingsPanel";
+import { RangoOptimoImportPanel } from "@/components/config/RangoOptimoImportPanel";
+import { getFinanceAiScheduleSettings } from "@/server/actions/finance-ai-schedules";
+import {
+  getRangoOptimoLastDate,
+  listRangoOptimoEntries,
+} from "@/server/actions/rango-optimo";
+import {
+  listBolinger15Symbols,
+  listJournalTickers,
+  listMlongSymbols,
+} from "@/server/actions/tickers";
+import { isFinanceAiConfigured } from "@/server/services/finance-ai-client";
 
 export default async function ConfigTickersPage() {
-  let tickers: Awaited<ReturnType<typeof listTickers>> = [];
+  const configured = isFinanceAiConfigured();
+  let journalTickers: Awaited<ReturnType<typeof listJournalTickers>> = [];
+  let rangoOptimoRows: Awaited<ReturnType<typeof listRangoOptimoEntries>> = [];
+  let rangoOptimoLastDate: string | null = null;
+  let initialBb15Tickers: string[] = [];
+  let initialMlongTickers: string[] = [];
+  let initialBuySellTickers: string[] = [];
+  let buySellEnabled = false;
 
   try {
-    tickers = await listTickers();
+    journalTickers = await listJournalTickers();
+    rangoOptimoRows = await listRangoOptimoEntries();
+    rangoOptimoLastDate = await getRangoOptimoLastDate();
+    initialBb15Tickers = await listBolinger15Symbols();
+    initialMlongTickers = await listMlongSymbols();
   } catch {
     return <p className="text-sm text-red-700">Base de datos no disponible.</p>;
+  }
+
+  if (configured) {
+    const result = await getFinanceAiScheduleSettings();
+    if (result.settings) {
+      if (initialBb15Tickers.length === 0) {
+        const fromAws = result.settings.bolinger15Tickers ?? [];
+        if (fromAws.length > 0) {
+          initialBb15Tickers = fromAws.map((s) => s.toUpperCase());
+        }
+      }
+      initialBuySellTickers = (result.settings.buySellTickers ?? []).map((s) => s.toUpperCase());
+      buySellEnabled = result.settings.buySellEnabled === true;
+    }
   }
 
   return (
@@ -15,39 +54,40 @@ export default async function ConfigTickersPage() {
       <div>
         <h1 className="text-2xl font-bold text-investep-navy">Tickers</h1>
         <p className="text-sm text-gray-600 mt-1">
-          Agrega tickers y marca <strong>☆ Favorito</strong> para mostrarlos en el dashboard.
+          Rangos optimos, Movimiento 15M, Movimientos Long, Buy/Sell, intervalos NOW y tickers del journal.
         </p>
       </div>
 
-      <form action={createTicker} className="bg-white border rounded p-4 flex flex-wrap gap-3 items-end">
-        <label className="text-sm">
-          Símbolo *
-          <input name="symbol" required placeholder="AAPL" className="block mt-1 uppercase" />
-        </label>
-        <label className="text-sm">
-          Nombre
-          <input name="name" className="block mt-1" />
-        </label>
-        <button type="submit">Agregar</button>
-      </form>
+      <RangoOptimoImportPanel
+        lastImportDate={rangoOptimoLastDate}
+        rowCount={rangoOptimoRows.length}
+      />
 
-      <ul className="divide-y bg-white border rounded">
-        {tickers.length === 0 && (
-          <li className="p-4 text-sm text-gray-500">No hay tickers todavía.</li>
-        )}
-        {tickers.map((t) => (
-          <li
-            key={t.id}
-            className="px-4 py-3 flex flex-wrap gap-3 items-center justify-between"
-          >
-            <div className="min-w-0">
-              <span className="font-semibold text-investep-navy">{t.symbol}</span>
-              {t.name && <span className="text-gray-500 text-sm ml-2">{t.name}</span>}
-            </div>
-            <TickerFavoriteToggle id={t.id} isFavorite={t.isFavorite} />
-          </li>
-        ))}
-      </ul>
+      <TickerSettingsPanel
+        configured={configured}
+        rangoOptimoRows={rangoOptimoRows}
+        initialBb15Tickers={initialBb15Tickers}
+        lastImportDate={rangoOptimoLastDate}
+      />
+
+      <TickerMlongSettingsPanel
+        rangoOptimoRows={rangoOptimoRows}
+        initialMlongTickers={initialMlongTickers}
+        lastImportDate={rangoOptimoLastDate}
+      />
+
+      <BuySellTickersPanel
+        configured={configured}
+        buySellEnabled={buySellEnabled}
+        initialBuySellTickers={initialBuySellTickers}
+        rangoOptimoRows={rangoOptimoRows}
+      />
+
+      <JournalTickersPanel
+        rows={journalTickers}
+        configured={configured}
+        rangoSymbols={rangoOptimoRows.map((r) => r.symbol)}
+      />
     </div>
   );
 }

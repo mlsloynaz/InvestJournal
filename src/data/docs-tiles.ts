@@ -1,5 +1,6 @@
 import {
   TOOLS_INDICADORES_PATH,
+  TOOLS_STRATEGIES_DOCS_PATH,
   TOOLS_STRATEGIES_PATH,
   TOOLS_WEBSITES_PATH,
 } from "@/lib/tools-paths";
@@ -12,9 +13,14 @@ export type DocsTile = {
 
 export const docsTiles: DocsTile[] = [
   {
+    href: TOOLS_STRATEGIES_DOCS_PATH,
+    title: "Estrategias (MD)",
+    description: "Documentación completa en Markdown desde C:\\dta\\strategies.",
+  },
+  {
     href: TOOLS_STRATEGIES_PATH,
-    title: "Strategies",
-    description: "Estrategias de trading: gráficos, requisitos y notas.",
+    title: "Strategies (registro)",
+    description: "Listado en base de datos para etiquetar notas y predicciones.",
   },
   {
     href: TOOLS_WEBSITES_PATH,

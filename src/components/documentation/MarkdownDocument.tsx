@@ -1,3 +1,5 @@
+import { MarkdownCodeBlock } from "@/components/documentation/MarkdownCodeBlock";
+
 type Block =
   | { type: "h1"; text: string }
   | { type: "h2"; text: string }
@@ -6,11 +8,12 @@ type Block =
   | { type: "hr" }
   | { type: "ul"; items: string[] }
   | { type: "blockquote"; lines: string[] }
-  | { type: "pre"; text: string }
-  | { type: "table"; headers: string[]; rows: string[][] };
+  | { type: "code"; text: string; language?: string }
+  | { type: "table"; headers: string[]; rows: string[][] }
+  | { type: "img"; alt: string; src: string };
 
 function inlineFormat(text: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
   return parts.map((part, index) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
@@ -19,8 +22,21 @@ function inlineFormat(text: string) {
         </strong>
       );
     }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code key={index} className="bg-gray-100 px-1 rounded text-xs font-mono">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
     return part;
   });
+}
+
+function parseImageLine(line: string): { alt: string; src: string } | null {
+  const match = /^!\[([^\]]*)\]\(([^)]+)\)$/.exec(line.trim());
+  if (!match) return null;
+  return { alt: match[1], src: match[2].trim() };
 }
 
 function parseTableRow(line: string): string[] {
@@ -30,8 +46,23 @@ function parseTableRow(line: string): string[] {
     .filter((cell, index, arr) => !(index === 0 && cell === "") && !(index === arr.length - 1 && cell === ""));
 }
 
+/** GFM separator row, e.g. |---|:---:|---| — note: [\s:-|] treats "-" as a range and breaks on dashes. */
+function isTableSeparatorLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed.includes("-") && !trimmed.includes(":")) return false;
+  return /^\|?(?:\s*:?\s*-+\s*:?\s*\|)+\s*:?\s*-+\s*:?\s*\|?$/.test(trimmed);
+}
+
+function isTableStart(lines: string[], index: number): boolean {
+  return (
+    lines[index]?.includes("|") === true &&
+    index + 1 < lines.length &&
+    isTableSeparatorLine(lines[index + 1])
+  );
+}
+
 function parseMarkdown(source: string): Block[] {
-  const lines = source.replace(/\r\n/g, "\n").split("\n");
+  const lines = source.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
   const blocks: Block[] = [];
   let index = 0;
 
@@ -67,14 +98,24 @@ function parseMarkdown(source: string): Block[] {
       continue;
     }
 
+    const image = parseImageLine(line);
+    if (image) {
+      blocks.push({ type: "img", alt: image.alt, src: image.src });
+      index++;
+      continue;
+    }
+
     if (line.startsWith("```")) {
+      const fence = line.trim();
+      const language =
+        fence.length > 3 ? fence.slice(3).trim().split(/\s+/)[0]?.toLowerCase() || undefined : undefined;
       const codeLines: string[] = [];
       index++;
       while (index < lines.length && !lines[index].startsWith("```")) {
         codeLines.push(lines[index]);
         index++;
       }
-      blocks.push({ type: "pre", text: codeLines.join("\n") });
+      blocks.push({ type: "code", text: codeLines.join("\n"), language });
       index++;
       continue;
     }
@@ -89,11 +130,11 @@ function parseMarkdown(source: string): Block[] {
       continue;
     }
 
-    if (line.includes("|") && index + 1 < lines.length && /^\|?[\s:-|]+\|?$/.test(lines[index + 1])) {
+    if (isTableStart(lines, index)) {
       const headers = parseTableRow(line);
       index += 2;
       const rows: string[][] = [];
-      while (index < lines.length && lines[index].includes("|")) {
+      while (index < lines.length && lines[index].includes("|") && !isTableSeparatorLine(lines[index])) {
         rows.push(parseTableRow(lines[index]));
         index++;
       }
@@ -120,12 +161,9 @@ function parseMarkdown(source: string): Block[] {
       !lines[index].startsWith("- ") &&
       !lines[index].startsWith(">") &&
       !lines[index].startsWith("```") &&
+      !parseImageLine(lines[index]) &&
       lines[index].trim() !== "---" &&
-      !(
-        lines[index].includes("|") &&
-        index + 1 < lines.length &&
-        /^\|?[\s:-|]+\|?$/.test(lines[index + 1])
-      )
+      !isTableStart(lines, index)
     ) {
       paragraphLines.push(lines[index].trim());
       index++;
@@ -186,14 +224,9 @@ export function MarkdownDocument({ source }: { source: string }) {
                 ))}
               </blockquote>
             );
-          case "pre":
+          case "code":
             return (
-              <pre
-                key={index}
-                className="bg-investep-navy text-investep-cream text-xs p-4 rounded overflow-x-auto whitespace-pre-wrap font-mono"
-              >
-                {block.text}
-              </pre>
+              <MarkdownCodeBlock key={index} text={block.text} language={block.language} />
             );
           case "table":
             return (
@@ -218,6 +251,31 @@ export function MarkdownDocument({ source }: { source: string }) {
                 </table>
               </div>
             );
+          case "img": {
+            const isSvg = /\.svg(?:[?#]|$)/i.test(block.src);
+            const figureClass = "max-w-full h-auto rounded border border-investep-navy/15";
+            return (
+              <figure key={index} className="my-4">
+                {isSvg ? (
+                  <object
+                    data={block.src}
+                    type="image/svg+xml"
+                    className={figureClass}
+                    aria-label={block.alt}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={block.src} alt={block.alt} className={figureClass} />
+                  </object>
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={block.src} alt={block.alt} className={figureClass} />
+                )}
+                {block.alt ? (
+                  <figcaption className="text-xs text-gray-500 mt-2">{block.alt}</figcaption>
+                ) : null}
+              </figure>
+            );
+          }
           default:
             return null;
         }

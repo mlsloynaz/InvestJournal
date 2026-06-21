@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PriceCalc } from "@/components/checklist/PriceCalc";
+import { RangoOptimoLookup } from "@/components/checklist/RangoOptimoLookup";
 import { TOOLS_DOCS_PATH, TOOLS_PLAN_INVERSION_PATH } from "@/lib/tools-paths";
 
 const mainLinks: { href: string; label: string; matchPrefix?: string }[] = [
   { href: "/", label: "Dashboard" },
   { href: "/reports", label: "Reports" },
+  { href: "/market", label: "Market", matchPrefix: "/market" },
   { href: "/config", label: "Configuración", matchPrefix: "/config" },
 ];
 
@@ -53,15 +55,18 @@ export function Sidebar() {
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
         <nav className="flex flex-col gap-1">
-          {mainLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={linkClass(isActive(pathname, link.href, link.matchPrefix))}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {mainLinks.map((link) => {
+            const active = isActive(pathname, link.href, link.matchPrefix);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={linkClass(active)}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
 
           <div className="mt-3 pt-3 border-t border-white/20">
             <p
@@ -90,7 +95,22 @@ export function Sidebar() {
             <p className="px-1 pb-3 text-xs font-bold uppercase tracking-wider text-investep-gold">
               Calc
             </p>
-            <PriceCalc variant="sidebar" />
+            <div className="mt-1">
+              <PriceCalc variant="sidebar" />
+            </div>
+          </section>
+
+          <section
+            id="sidebar-rango-optimo"
+            className="mt-4 pt-4 border-t border-white/20 rounded-lg bg-black/20 px-2 pb-3"
+            aria-label="Rango óptimo en barra lateral"
+          >
+            <p className="px-1 pb-3 text-xs font-bold uppercase tracking-wider text-investep-gold">
+              Rango óptimo
+            </p>
+            <div className="mt-1">
+              <RangoOptimoLookup variant="sidebar" />
+            </div>
           </section>
         </nav>
       </div>

@@ -1,0 +1,12 @@
+CREATE USER IF NOT EXISTS 'root'@'127.0.0.1';
+ALTER USER 'root'@'127.0.0.1' IDENTIFIED BY '';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION;
+
+CREATE DATABASE IF NOT EXISTS investjournal CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'invest'@'127.0.0.1' IDENTIFIED BY 'invest';
+CREATE USER IF NOT EXISTS 'invest'@'localhost' IDENTIFIED BY 'invest';
+GRANT ALL PRIVILEGES ON investjournal.* TO 'invest'@'127.0.0.1';
+GRANT ALL PRIVILEGES ON investjournal.* TO 'invest'@'localhost';
+
+FLUSH PRIVILEGES;

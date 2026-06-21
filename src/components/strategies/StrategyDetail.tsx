@@ -10,16 +10,13 @@ import {
   uploadStrategyGraph,
 } from "@/server/actions/strategies";
 
-type Requirement = { id: number; text: string };
-
 type Props = {
   id: number;
   name: string;
   bestFor: string | null;
   commonMistake: string | null;
-  graphPath: string | null;
-  graphFileName: string | null;
-  requirements: Requirement[];
+  graphUrl: string | null;
+  requirements: string[];
 };
 
 export function StrategyDetail({
@@ -27,8 +24,7 @@ export function StrategyDetail({
   name,
   bestFor,
   commonMistake,
-  graphPath,
-  graphFileName,
+  graphUrl,
   requirements,
 }: Props) {
   return (
@@ -44,11 +40,11 @@ export function StrategyDetail({
 
       <section className="bg-white border rounded-lg p-5 space-y-4">
         <h2 className="text-lg font-semibold text-investep-navy border-b pb-2">Gráfico</h2>
-        {graphPath ? (
+        {graphUrl ? (
           <div className="space-y-3">
             <div className="relative aspect-video max-w-2xl bg-gray-100 rounded-lg overflow-hidden border">
               <Image
-                src={graphPath}
+                src={graphUrl}
                 alt={`Gráfico ${name}`}
                 fill
                 className="object-contain"
@@ -56,12 +52,6 @@ export function StrategyDetail({
                 unoptimized
               />
             </div>
-            <p className="text-xs text-gray-500 space-y-0.5">
-              {graphFileName && <span className="block">Archivo: {graphFileName}</span>}
-              <span className="block font-mono text-[10px] break-all">
-                public{graphPath}
-              </span>
-            </p>
             <form action={deleteStrategyGraph}>
               <input type="hidden" name="strategyId" value={id} />
               <button type="submit" className="!bg-red-700 text-xs">
@@ -75,7 +65,7 @@ export function StrategyDetail({
         <form action={uploadStrategyGraph} className="flex flex-wrap gap-3 items-end pt-2 border-t">
           <input type="hidden" name="strategyId" value={id} />
           <label className="text-sm">
-            {graphPath ? "Reemplazar imagen" : "Subir gráfico"}
+            {graphUrl ? "Reemplazar imagen" : "Subir gráfico"}
             <input type="file" name="file" accept="image/*" required className="block mt-1 text-xs" />
           </label>
           <button type="submit" className="!bg-investep-gold !text-investep-navy">
@@ -90,15 +80,16 @@ export function StrategyDetail({
           <p className="text-sm text-gray-500">Sin requisitos. Agrega líneas abajo.</p>
         ) : (
           <ul className="space-y-2">
-            {requirements.map((req, index) => (
+            {requirements.map((text, index) => (
               <li
-                key={req.id}
+                key={`${index}-${text}`}
                 className="flex gap-2 items-start text-sm bg-investep-cream/40 rounded px-3 py-2"
               >
                 <span className="text-investep-gold font-bold shrink-0">{index + 1}.</span>
-                <span className="flex-1 text-investep-navy">{req.text}</span>
+                <span className="flex-1 text-investep-navy">{text}</span>
                 <form action={deleteStrategyRequirement}>
-                  <input type="hidden" name="requirementId" value={req.id} />
+                  <input type="hidden" name="strategyId" value={id} />
+                  <input type="hidden" name="index" value={index} />
                   <button type="submit" className="!bg-red-700 !px-2 !py-0.5 text-xs shrink-0">
                     ×
                   </button>

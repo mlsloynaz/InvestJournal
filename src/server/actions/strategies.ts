@@ -47,9 +47,24 @@ export async function listStrategies() {
 }
 
 export async function listStrategiesForCrud() {
-  return prisma.strategy.findMany({
+  const rows = await prisma.strategy.findMany({
     orderBy: { name: "asc" },
   });
+
+  return Promise.all(
+    rows.map(async (strategy) => {
+      const markdown = await loadMd(strategy.id, strategy.markdownPath);
+      return {
+        id: strategy.id,
+        name: strategy.name,
+        graphPath: markdown.graph.trim() ? "yes" : null,
+        bestFor: strategy.bestFor ?? (markdown.bestFor.trim() || null),
+        commonMistake: markdown.commonMistake.trim() || null,
+        updatedAt: strategy.updatedAt,
+        _count: { requirements: markdown.requirements.length },
+      };
+    })
+  );
 }
 
 export async function getStrategy(id: number) {
@@ -119,6 +134,54 @@ export async function updateStrategyMeta(formData: FormData): Promise<void> {
   await prisma.strategy.update({
     where: { id },
     data: { bestFor, tendency },
+  });
+
+  revalidateStrategies();
+}
+
+export async function addStrategyRequirement(formData: FormData): Promise<void> {
+  const strategyId = Number(formData.get("strategyId"));
+  const text = String(formData.get("text") ?? "").trim();
+  if (!text) return;
+
+  const strategy = await prisma.strategy.findUnique({ where: { id: strategyId } });
+  if (!strategy) return;
+
+  const content = await loadMd(strategyId, strategy.markdownPath);
+  content.requirements.push(text);
+  await persistMd(strategyId, strategy.markdownPath, strategy.name, content);
+  revalidateStrategies();
+}
+
+export async function deleteStrategyRequirement(formData: FormData): Promise<void> {
+  const strategyId = Number(formData.get("strategyId"));
+  const index = Number(formData.get("index"));
+  if (!Number.isFinite(index) || index < 0) return;
+
+  const strategy = await prisma.strategy.findUnique({ where: { id: strategyId } });
+  if (!strategy) return;
+
+  const content = await loadMd(strategyId, strategy.markdownPath);
+  if (index >= content.requirements.length) return;
+  content.requirements.splice(index, 1);
+  await persistMd(strategyId, strategy.markdownPath, strategy.name, content);
+  revalidateStrategies();
+}
+
+export async function updateStrategyBestFor(formData: FormData): Promise<void> {
+  const id = Number(formData.get("id"));
+  const bestFor = String(formData.get("bestFor") ?? "").trim();
+
+  const strategy = await prisma.strategy.findUnique({ where: { id } });
+  if (!strategy) return;
+
+  const content = await loadMd(id, strategy.markdownPath);
+  content.bestFor = bestFor;
+  await persistMd(id, strategy.markdownPath, strategy.name, content);
+
+  await prisma.strategy.update({
+    where: { id },
+    data: { bestFor: bestFor || null },
   });
 
   revalidateStrategies();

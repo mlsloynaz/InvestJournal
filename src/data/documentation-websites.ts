@@ -40,9 +40,14 @@ export const documentationWebsites: DocumentationWebsite[] = [
     label: "www.bloomberg.com",
     uses: ["Noticias"],
   },
+  {
+    href: "https://www.investing.com",
+    label: "www.investing.com",
+    uses: ["Noticias"],
+  },
 ];
 
 export const documentationWebsitesColumns: DocumentationWebsite[][] = [
-  documentationWebsites.slice(0, 3),
-  documentationWebsites.slice(3, 6),
+  documentationWebsites.slice(0, 4),
+  documentationWebsites.slice(4),
 ];

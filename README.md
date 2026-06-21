@@ -14,7 +14,7 @@ Stock market journal based on the **Investep Academy** weekly checklist. Track t
 | Styling | Tailwind CSS |
 | Database | MySQL 8 |
 | ORM | Prisma |
-| Local DB | Docker Compose (port **3307**) |
+| Local DB | Native MySQL via `npm run db:start` (port **3307**, `mysql-data\`) |
 
 ---
 
@@ -23,7 +23,7 @@ Stock market journal based on the **Investep Academy** weekly checklist. Track t
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) 20+ (includes `npm`)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for MySQL), **or** your own MySQL instance
+- [MySQL Server](https://dev.mysql.com/downloads/mysql/) 8+ (Windows; used by `npm run db:start`)
 
 ### 1. Install dependencies
 
@@ -38,7 +38,7 @@ npm install
 copy .env.example .env
 ```
 
-Default connection (Docker):
+Default connection (local MySQL on port 3307):
 
 ```env
 DATABASE_URL="mysql://invest:invest@localhost:3307/investjournal"
@@ -49,10 +49,17 @@ If you use another MySQL host/port, edit `.env` accordingly.
 ### 3. Start MySQL
 
 ```powershell
-docker compose up -d
+npm run db:start
 ```
 
-Wait until the container is healthy. Verify Docker is on your PATH (`docker --version`).
+This runs `scripts\start-mysql.cmd`: local **mysqld** on **127.0.0.1:3307**, data in **`mysql-data\`**.  
+Requires MySQL installed (default: `C:\Program Files\MySQL\MySQL Server 9.7\bin`). Edit the script if your path differs.
+
+Verify:
+
+```powershell
+node scripts\db-check.mjs
+```
 
 ### 4. Create database tables
 
@@ -75,7 +82,7 @@ Open in the browser: **http://localhost:3000**
 
 ```powershell
 cd C:\Code\InvestJournal
-docker compose up -d
+npm run db:start
 npm run dev
 ```
 
@@ -85,6 +92,7 @@ Stop the dev server with `Ctrl+C` in the terminal.
 
 | Command | Purpose |
 |---------|---------|
+| `npm run db:start` | Start local MySQL on port 3307 |
 | `npm run dev` | Development server (hot reload) |
 | `npm run build` | Production build |
 | `npm run start` | Run production build |
@@ -99,8 +107,9 @@ Stop the dev server with `Ctrl+C` in the terminal.
 
 | Problem | Solution |
 |---------|----------|
-| `'docker' is not recognized` | Install Docker Desktop and restart the terminal |
-| `P1001` Can't reach database at `localhost:3307` | Run `docker compose up -d`, then `npx prisma db push` |
+| `P1001` Can't reach database at `localhost:3307` | Run `npm run db:start`, then `npx prisma db push` |
+| MySQL path not found in `db:start` | Install MySQL Server or edit `scripts\start-mysql.cmd` |
+| Port 3307 already in use | Stop the other MySQL process on that port |
 | **Strategies: Base de datos no disponible** | See below |
 | `EPERM` on `prisma generate` | Stop `npm run dev` first, then `npm run setup` |
 | `@prisma/client did not initialize` | Run `npm run setup`, restart dev server |
@@ -114,7 +123,7 @@ Stop the dev server with `Ctrl+C` in the terminal.
 2. Run:
    ```powershell
    cd C:\Code\InvestJournal
-   docker compose up -d
+   npm run db:start
    npm install
    npm run setup
    ```
@@ -233,7 +242,8 @@ One record per **ticker + week** (week starts **Monday**).
 ```
 InvestJournal/
 ├── prisma/schema.prisma    # Database models
-├── docker-compose.yml      # MySQL on port 3307
+├── mysql-data/             # Local MySQL datadir (copy folder to move DB to another PC)
+├── scripts/start-mysql.cmd # Start native mysqld on port 3307
 ├── .env                    # DATABASE_URL (not committed)
 ├── src/app/                # Pages (App Router)
 ├── src/components/         # UI (checklist, analysis, layout)

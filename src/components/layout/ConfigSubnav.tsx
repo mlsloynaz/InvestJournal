@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
+  { href: "/config/aws", label: "FinanceAI AWS" },
   { href: "/config/tickers", label: "Tickers" },
-  { href: "/config/fed-meetings", label: "Fed meetings" },
   { href: "/config/note-types", label: "Tipos de notas" },
 ];
 
