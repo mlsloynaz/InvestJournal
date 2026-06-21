@@ -144,7 +144,7 @@ function MarketWorkspaceContent({
             <p className="font-medium">No se pudo cargar el catalogo de criterios</p>
             <p className="text-xs mt-1">
               {testingCriteriasCatalogError ??
-                "Revisa estrategia-*.md en C:\\dta\\strategies"}
+                "Comprueba FinanceAI (GET /context/strategies) o archivos estrategia-*.md en STRATEGIES_MD_DIR."}
             </p>
           </div>
         ) : (

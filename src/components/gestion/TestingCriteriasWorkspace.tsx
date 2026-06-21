@@ -201,7 +201,10 @@ function StrategyRequirementsList({
   srFilter: string;
   onSrFilterChange: (value: string) => void;
   onSelectCheck: (check: TestingCriteriaCheck) => void;
-  catalogMeta: Pick<TestingCriteriaCatalog, "source" | "sourceFiles" | "loadedAt">;
+  catalogMeta: Pick<
+    TestingCriteriaCatalog,
+    "source" | "sourceFiles" | "loadedAt" | "catalogSource" | "awsUpdatedAt" | "playbooksCount" | "fallbackNote"
+  >;
   onRefreshCatalog: () => void;
   refreshingCatalog: boolean;
 }) {
@@ -244,15 +247,38 @@ function StrategyRequirementsList({
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2 justify-between">
         <p className="text-[10px] text-gray-500 leading-snug min-w-0">
-          Fuente: {catalogMeta.source}
+          <span
+            className={
+              catalogMeta.catalogSource === "aws-playbook"
+                ? "font-medium text-sky-800"
+                : "font-medium text-amber-800"
+            }
+          >
+            {catalogMeta.catalogSource === "aws-playbook" ? "AWS playbook" : "Local fallback"}
+          </span>
+          {" · "}
+          {catalogMeta.source}
+          {catalogMeta.playbooksCount != null ? (
+            <span className="block text-gray-600">
+              {catalogMeta.playbooksCount} playbook(s) · {totalCount} SR en catálogo
+            </span>
+          ) : null}
           {catalogMeta.sourceFiles.length > 0 && (
             <span className="block font-mono truncate" title={catalogMeta.sourceFiles.join(", ")}>
               {catalogMeta.sourceFiles.join(", ")}
             </span>
           )}
+          {catalogMeta.awsUpdatedAt ? (
+            <span className="block text-gray-400">
+              AWS publicado {formatCatalogLoadedAt(catalogMeta.awsUpdatedAt)}
+            </span>
+          ) : null}
           <span className="block text-gray-400">
-            Actualizado {formatCatalogLoadedAt(catalogMeta.loadedAt)}
+            Catálogo cargado {formatCatalogLoadedAt(catalogMeta.loadedAt)}
           </span>
+          {catalogMeta.fallbackNote ? (
+            <span className="block text-amber-800 mt-0.5">{catalogMeta.fallbackNote}</span>
+          ) : null}
         </p>
         <button
           type="button"
@@ -590,8 +616,12 @@ export function TestingCriteriasWorkspace({
                 onSelectCheck={selectCheck}
                 catalogMeta={{
                   source: catalog.source,
+                  catalogSource: catalog.catalogSource,
                   sourceFiles: catalog.sourceFiles,
                   loadedAt: catalog.loadedAt,
+                  awsUpdatedAt: catalog.awsUpdatedAt,
+                  playbooksCount: catalog.playbooksCount,
+                  fallbackNote: catalog.fallbackNote,
                 }}
                 onRefreshCatalog={() => void refreshCatalog()}
                 refreshingCatalog={refreshingCatalog}

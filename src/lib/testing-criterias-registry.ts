@@ -60,7 +60,7 @@ export const BB15_CRITERIA_CHECKS: TestingCriteriaCheck[] = [
     automatable: "true",
     strategyId: BB15_STRATEGY_ID,
     strategyLabel: "BB15 Cambio tendencia 15m",
-    requirementId: "r1",
+    requirementId: "bb15-r1",
   },
   {
     checkId: "bb15:open_inside_bb15",
@@ -70,7 +70,7 @@ export const BB15_CRITERIA_CHECKS: TestingCriteriaCheck[] = [
     automatable: "true",
     strategyId: BB15_STRATEGY_ID,
     strategyLabel: "BB15 Cambio tendencia 15m",
-    requirementId: "r2",
+    requirementId: "bb15-r2",
   },
   {
     checkId: "bb15:bb_mid_cut_15m",
@@ -80,7 +80,7 @@ export const BB15_CRITERIA_CHECKS: TestingCriteriaCheck[] = [
     automatable: "true",
     strategyId: BB15_STRATEGY_ID,
     strategyLabel: "BB15 Cambio tendencia 15m",
-    requirementId: "r3",
+    requirementId: "bb15-r3",
   },
   {
     checkId: "bb15:trend_cut_counter",
@@ -90,7 +90,7 @@ export const BB15_CRITERIA_CHECKS: TestingCriteriaCheck[] = [
     automatable: "true",
     strategyId: BB15_STRATEGY_ID,
     strategyLabel: "BB15 Cambio tendencia 15m",
-    requirementId: "r4",
+    requirementId: "bb15-r4",
   },
 ];
 

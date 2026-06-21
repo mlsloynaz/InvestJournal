@@ -188,6 +188,10 @@ export type FinanceAiGlobalContext = {
   updatedAt?: string;
   source?: string;
   filename?: string;
+  sourceFiles?: string[];
+  playbooks?: import("@/lib/estrategia-playbook-types").StrategyPlaybook[];
+  playbooksCount?: number;
+  playbooksVersion?: number;
 };
 
 export type FinanceAiPremarketMovement = {
