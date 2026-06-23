@@ -36,6 +36,7 @@ export type ResultNowRequirementRow = {
   label: string;
   status: string;
   evidence?: string;
+  metAtEt?: string;
   isVolatility: boolean;
   tone: "met" | "partial" | "pending" | "manual" | "expired";
 };
@@ -102,6 +103,7 @@ function rowsFromStrategyFit(strategy: FinanceAiStrategyFit): ResultNowRequireme
     label: row.label,
     status: row.item.status ?? "unknown",
     evidence: row.item.evidence,
+    metAtEt: row.item.metAtEt ?? row.item.metAt,
     isVolatility: isVolatilityRelatedRequirement(row.item),
     tone:
       row.tone === "met"
@@ -121,6 +123,7 @@ function rowsFromMetEval(strategy: FinanceAiStrategyMetEval): ResultNowRequireme
       label: r.label?.trim() || r.requirementId?.trim() || "Requisito",
       status: r.status ?? "unknown",
       evidence: r.evidence,
+      metAtEt: r.metAtEt ?? r.metAt,
       isVolatility: isVolatilityRelatedRequirement(r),
       tone: requirementTone(r.status, r.ruleKey),
     }));

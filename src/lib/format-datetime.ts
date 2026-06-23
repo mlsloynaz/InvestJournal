@@ -34,6 +34,31 @@ export function formatDurationMs(ms: number | undefined | null): string {
   return remMin > 0 ? `${hr}h ${remMin}m` : `${hr}h`;
 }
 
+/** Checklist rule met time — HH:mm ET (accepts HH:mm, HH:mm ET, or ISO). */
+export function formatRuleMetAtEt(value: string | undefined | null): string | null {
+  if (!value?.trim()) return null;
+  const v = value.trim();
+  const hmMatch = /^(\d{1,2}):(\d{2})(?::\d{2})?\s*(ET)?$/i.exec(v);
+  if (hmMatch) {
+    const hour = hmMatch[1].padStart(2, "0");
+    return `${hour}:${hmMatch[2]} ET`;
+  }
+  const normalized = v.includes("T") ? v : v.replace(" ", "T");
+  const parsed = Date.parse(normalized);
+  if (!Number.isNaN(parsed)) {
+    const time = normalizeIntl(
+      new Intl.DateTimeFormat("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: DISPLAY_TZ,
+      }).format(parsed)
+    );
+    return `${time} ET`;
+  }
+  return /ET/i.test(v) ? v : `${v} ET`;
+}
+
 /** Bar datetime from Alpha Vantage (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS). */
 export function formatBarDatetime(value: string | undefined | null): string {
   if (!value?.trim()) return "—";

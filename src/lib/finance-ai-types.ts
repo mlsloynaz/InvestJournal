@@ -243,6 +243,10 @@ export type FinanceAiStrategyCheckItem = {
   supportBonusPct?: number;
   status?: "met" | "not_met" | "partial" | "unknown" | "manual";
   evidence?: string;
+  /** When status is met: first time the rule satisfied, HH:mm ET on tradeDate. */
+  metAtEt?: string;
+  /** Optional ISO instant for met time (cross-day / audit). Prefer metAtEt for UI. */
+  metAt?: string;
 };
 
 export type FinanceAiStrategyRequirementSpec = {
@@ -1180,6 +1184,8 @@ export type FinanceAiStrategyMetRequirement = {
   ruleKey?: string;
   status?: string;
   evidence?: string;
+  metAtEt?: string;
+  metAt?: string;
 };
 
 export type FinanceAiStrategyMetEval = {

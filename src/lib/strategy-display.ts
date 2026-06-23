@@ -6,7 +6,7 @@ import type {
   FinanceAiStrategyCheckItem,
   FinanceAiStrategyFit,
 } from "@/lib/finance-ai-types";
-import { formatBarDatetime, formatFinanceAiTimestamp } from "@/lib/format-datetime";
+import { formatBarDatetime, formatFinanceAiTimestamp, formatRuleMetAtEt } from "@/lib/format-datetime";
 
 const ENTRY_RULE_KEYS = new Set([
   "hourly_candle_confirm",
@@ -578,6 +578,16 @@ export function strategyRulesForDisplay(strategy: FinanceAiStrategyFit): Strateg
       tone: strategyRuleDisplayTone(item),
       label: item.label?.trim() || item.requirementId?.trim() || "Requisito",
     }));
+}
+
+/** Display label for when a met rule first satisfied — requires FinanceAI `metAtEt`. */
+export function strategyRuleMetAtLabel(
+  item: Pick<FinanceAiStrategyCheckItem, "metAtEt" | "metAt" | "status">
+): string | null {
+  if (item.status !== "met") return null;
+  const raw = item.metAtEt?.trim() || item.metAt?.trim();
+  if (!raw) return null;
+  return formatRuleMetAtEt(raw);
 }
 
 export function strategyEntryDirection(strategy: FinanceAiStrategyFit): "CALL" | "PUT" | null {

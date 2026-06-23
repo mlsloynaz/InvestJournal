@@ -18,6 +18,7 @@ import { formatFinanceAiTimestamp } from "@/lib/format-datetime";
 import { tradingDateEt } from "@/lib/live-session-window";
 import { MarketAiFoundationTrends } from "@/components/gestion/MarketAiFoundationTrends";
 import { ResultNowBriefStrip } from "@/components/gestion/ResultNowBriefStrip";
+import { StrategyRequirementsListFromFit } from "@/components/gestion/StrategyRequirementsList";
 import { StrategyMetDirectionArrow } from "@/components/gestion/StrategyMetDirectionArrow";
 import {
   filterStrategyFits,
@@ -36,7 +37,6 @@ import {
   strategyEntryDirection,
   strategyEvalContextFromChecklist,
   strategyExpectedTiming,
-  strategyRulesForDisplay,
   strategyActionNotes,
   strategyTitle,
   normalizeStrategyFitForDisplay,
@@ -159,50 +159,6 @@ function StrategyActionNotesList({ strategy }: { strategy: FinanceAiStrategyFit 
   );
 }
 
-function StrategyRulesList({ strategy }: { strategy: FinanceAiStrategyFit }) {
-  const rules = strategyRulesForDisplay(strategy);
-  if (rules.length === 0) return null;
-  return (
-    <ul className="mt-1.5 space-y-1">
-      {rules.map((row, index) => (
-        <li
-          key={`${row.item.requirementId ?? row.item.ruleKey ?? row.label}-${index}`}
-          className={
-            row.tone === "met"
-              ? "flex gap-1.5 text-green-800"
-              : row.tone === "expired"
-                ? "flex gap-1.5 text-red-800"
-                : row.tone === "near"
-                  ? "flex gap-1.5 text-sky-900"
-                  : "flex gap-1.5 text-amber-900"
-          }
-        >
-          <span className="shrink-0 font-medium" aria-hidden>
-            {row.tone === "met" ? "✓" : row.tone === "expired" ? "✗" : row.tone === "near" ? "◐" : "○"}
-          </span>
-          <span className="min-w-0">
-            {row.label}
-            {row.tone === "met" && row.item.evidence && (
-              <span className="block text-[10px] text-green-700/90 font-normal mt-0.5">
-                {row.item.evidence}
-              </span>
-            )}
-            {row.tone === "near" && (
-              <span className="text-sky-800 font-medium"> · cerca</span>
-            )}
-            {row.tone === "confirm" && (
-              <span className="text-amber-700 font-medium"> · confirmar</span>
-            )}
-            {row.tone === "expired" && (
-              <span className="text-red-700 font-medium"> · no operar</span>
-            )}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 function StrategyDetailBody({
   strategy,
   sessionGap,
@@ -222,7 +178,7 @@ function StrategyDetailBody({
     <>
       <p className="text-teal-900 mt-0.5">Cuándo: {expectedWhen}</p>
       {dataAsOf && <p className="text-gray-500 mt-0.5">Datos hasta: {dataAsOf}</p>}
-      <StrategyRulesList strategy={strategy} />
+      <StrategyRequirementsListFromFit strategy={strategy} className="mt-1.5" groupMet />
       <StrategyActionNotesList strategy={strategy} />
       {entryDir && (
         <p className={`mt-1.5 font-semibold ${qualified ? "text-green-900" : "text-gray-800"}`}>

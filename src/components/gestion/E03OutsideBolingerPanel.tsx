@@ -8,6 +8,7 @@ import {
 } from "@/components/gestion/CollapsibleResultSection";
 import { Bb15DirectionArrow } from "@/components/gestion/StrategyMetDirectionArrow";
 import { TickerCollapsedSummaryBadge } from "@/components/gestion/MovementTickerCollapsedBadge";
+import { StrategyRequirementsList } from "@/components/gestion/StrategyRequirementsList";
 import {
   E03_MANDATORY_RULE_KEYS,
   E03_STRATEGY_ID,
@@ -25,7 +26,6 @@ import {
 import {
   formatStrategyIdLabel,
   strategyRulesForDisplay,
-  type StrategyRuleDisplay,
 } from "@/lib/strategy-display";
 import { buildTestingCriteriasHref } from "@/lib/testing-criterias-link";
 import { waitForMov15mTriggerResult } from "@/lib/mov15m-poll-wait";
@@ -53,43 +53,6 @@ function filterRowsForWatchlist(
 ): E03OutsideTickerRow[] {
   const allow = new Set(symbols.map((s) => s.trim().toUpperCase()));
   return rows.filter((row) => allow.has(row.symbol.trim().toUpperCase()));
-}
-
-function E03RuleRow({ row }: { row: StrategyRuleDisplay }) {
-  const isBbExposure = row.item.ruleKey === "bb_exposure";
-  const toneClass =
-    row.tone === "met"
-      ? "text-green-800"
-      : row.tone === "expired"
-        ? "text-red-800"
-        : row.tone === "near"
-          ? "text-sky-900"
-          : "text-amber-900";
-  const icon =
-    row.tone === "met" ? "✓" : row.tone === "expired" ? "✗" : row.tone === "near" ? "◐" : "○";
-
-  return (
-    <li
-      className={`flex gap-1.5 ${toneClass} ${
-        isBbExposure ? "rounded border border-amber-300 bg-amber-50/80 px-1.5 py-1 -mx-1.5" : ""
-      }`}
-    >
-      <span className="shrink-0 font-medium" aria-hidden>
-        {icon}
-      </span>
-      <span className="min-w-0">
-        <span className={isBbExposure ? "font-semibold" : undefined}>
-          {row.label}
-          {isBbExposure ? " · 15m fuera de BB" : null}
-        </span>
-        {row.tone === "met" && row.item.evidence && (
-          <span className="block text-[10px] opacity-90 font-normal mt-0.5">{row.item.evidence}</span>
-        )}
-        {row.tone === "near" && <span className="text-sky-800 font-medium"> · cerca</span>}
-        {row.tone === "confirm" && <span className="text-amber-700 font-medium"> · confirmar</span>}
-      </span>
-    </li>
-  );
 }
 
 function E03DirectionBlock({ row }: { row: E03OutsideTickerRow }) {
@@ -148,27 +111,18 @@ function E03TickerBody({ row }: { row: E03OutsideTickerRow }) {
       {mandatoryRules.length > 0 && (
         <div>
           <p className="text-[9px] font-semibold text-gray-700 mb-0.5">Obligatorios E03</p>
-          <ul className="space-y-1">
-            {mandatoryRules.map((rule, index) => (
-              <E03RuleRow
-                key={`${rule.item.ruleKey ?? rule.label}-${index}`}
-                row={rule}
-              />
-            ))}
-          </ul>
+          <StrategyRequirementsList
+            rules={mandatoryRules}
+            highlightRuleKey="bb_exposure"
+          />
         </div>
       )}
       {supportRules.length > 0 && (
         <div>
           <p className="text-[9px] font-semibold text-gray-500 mb-0.5">Soporte</p>
-          <ul className="space-y-1 opacity-90">
-            {supportRules.map((rule, index) => (
-              <E03RuleRow
-                key={`${rule.item.ruleKey ?? rule.label}-s-${index}`}
-                row={rule}
-              />
-            ))}
-          </ul>
+          <div className="opacity-90">
+            <StrategyRequirementsList rules={supportRules} />
+          </div>
         </div>
       )}
     </div>

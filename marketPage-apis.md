@@ -240,6 +240,8 @@ Response key: `strategyEval` or `result` (client accepts both).
 
 Single-ticker strategy checklist (same `analysis` shape as strategy-eval `results[].analysis`).
 
+Checklist items may include **`metAtEt`** (`HH:mm` ET) when a rule is met — see [marketPage-checklist-met-at.md](./marketPage-checklist-met-at.md).
+
 **Request body (legacy path)**
 
 ```json
