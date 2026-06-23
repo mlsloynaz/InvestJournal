@@ -93,7 +93,6 @@ export function parseTimeEtToMinutes(hhmm: string): number | undefined {
 export type Mov15mPollingApiPayload = {
   poll1m?: boolean;
   symbols?: string[];
-  tickersForPolling?: string[];
   pollingStartTimeEt?: string;
   pollingEndTimeEt?: string;
   simulateUntilDate?: string;
@@ -103,12 +102,31 @@ export type Mov15mPollingApiPayload = {
   simulateMinutesEt?: number;
 };
 
+/** Normalize ticker list for POST /context/mov15m/status (symbols[] required on FinanceAI). */
+export function normalizeMov15mSymbols(
+  symbols?: string[] | null,
+  fallback?: string[] | null
+): string[] {
+  const raw = (symbols?.length ? symbols : fallback) ?? [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of raw) {
+    const sym = String(item ?? "")
+      .trim()
+      .toUpperCase();
+    if (!sym || seen.has(sym)) continue;
+    seen.add(sym);
+    out.push(sym);
+  }
+  return out.sort((a, b) => a.localeCompare(b));
+}
+
 export function mov15mPollingToApiPayload(params: Mov15mPollingParams): Mov15mPollingApiPayload {
   const payload: Mov15mPollingApiPayload = {};
 
-  if (params.tickersForPolling.length > 0) {
-    payload.symbols = params.tickersForPolling;
-    payload.tickersForPolling = params.tickersForPolling;
+  const symbols = normalizeMov15mSymbols(params.tickersForPolling);
+  if (symbols.length > 0) {
+    payload.symbols = symbols;
   }
 
   const simulateDate = params.simulateUntilDate?.trim();

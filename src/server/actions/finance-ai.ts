@@ -1280,6 +1280,13 @@ export async function triggerFinanceAiMov15mCheck(options?: {
   const baseline = await loadPersistedMov15mStatus();
   const baselineLastRunAt = baseline.status?.lastRunAt;
 
+  const symbols = [
+    ...new Set(
+      [...(options?.symbols ?? []), ...(options?.tickersForPolling ?? [])]
+        .map((s) => s.trim().toUpperCase())
+        .filter(Boolean)
+    ),
+  ];
   const tick = await postMov15mTick({
     force: true,
     async: true,
@@ -1291,11 +1298,10 @@ export async function triggerFinanceAiMov15mCheck(options?: {
     simulateUntilTime: options?.simulateUntilTime,
     simulationTimeEt: options?.simulationTimeEt ?? options?.simulateUntilTime,
     simulateMinutesEt: options?.simulateMinutesEt,
-    symbols: options?.symbols ?? options?.tickersForPolling,
+    symbols: symbols.length > 0 ? symbols : undefined,
     poll1m: options?.poll1m,
     pollingStartTimeEt: options?.pollingStartTimeEt,
     pollingEndTimeEt: options?.pollingEndTimeEt,
-    tickersForPolling: options?.tickersForPolling,
   });
   if (!tick.ok) {
     return {
@@ -1382,14 +1388,20 @@ export async function startFinanceAiMov15mPolling(options: {
   if (!isFinanceAiConfigured()) {
     return { success: false, error: "FinanceAI no configurado" };
   }
+  const symbols = [
+    ...new Set(
+      [...(options.symbols ?? []), ...(options.tickersForPolling ?? [])]
+        .map((s) => s.trim().toUpperCase())
+        .filter(Boolean)
+    ),
+  ];
   const tick = await postMov15mTick({
     force: true,
     async: true,
     manual: true,
     mode: "opening_poll",
     poll1m: true,
-    symbols: options.symbols ?? options.tickersForPolling,
-    tickersForPolling: options.tickersForPolling ?? options.symbols,
+    symbols: symbols.length > 0 ? symbols : undefined,
     pollingStartTimeEt: options.pollingStartTimeEt,
     pollingEndTimeEt: options.pollingEndTimeEt,
     tradeDate: options.tradeDate ?? options.simulateUntilDate,

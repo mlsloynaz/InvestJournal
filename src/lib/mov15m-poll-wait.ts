@@ -109,7 +109,7 @@ export async function waitForMov15mTriggerResult(
     return { ok: false, error: result.error ?? "Error en evaluación mov15m" };
   }
   if (result.accepted) {
-    onProgress?.("1m polling encolado en AWS…");
+    onProgress?.("Evaluación encolada en AWS…");
     const polled = await pollMov15mTickComplete(
       result.baselineLastRunAt,
       result.phase,

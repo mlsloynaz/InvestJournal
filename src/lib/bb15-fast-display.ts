@@ -32,7 +32,7 @@ export function resolveBb15TickerSignal(row: FinanceAiBolinger15FastMovementTick
   const rulesMet = opening?.checks?.rulesMet ?? row.rulesMet;
   const rulesTotal = opening?.checks?.rulesTotal ?? row.rulesTotal;
   const firstCandleEntry =
-    row.entryReady === true || (rulesMet === rulesTotal && rulesTotal === 3);
+    row.entryReady === true || (rulesMet === rulesTotal && rulesTotal === 4);
 
   let signal =
     opening?.signal ??
@@ -1511,7 +1511,7 @@ export function resolveBb15Prediction(row: FinanceAiBolinger15FastMovementTicker
   const rulesMet = checks?.rulesMet ?? row.rulesMet;
   const rulesTotal = checks?.rulesTotal ?? row.rulesTotal;
   const firstCandleEntry =
-    row.entryReady === true || (rulesMet === rulesTotal && rulesTotal === 3);
+    row.entryReady === true || (rulesMet === rulesTotal && rulesTotal === 4);
   const entrySlot = row.entryBarSlot ?? checks?.openingBarSlot ?? "9:30";
 
   if (firstCandleEntry) {

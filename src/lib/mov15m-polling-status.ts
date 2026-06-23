@@ -24,19 +24,13 @@ export function resolveMov15mPollingRuntimeStatus(
     (status as { poll1mRunning?: boolean }).poll1mRunning === true;
 
   const phasePoll =
-    phase.includes("poll") ||
     phase === "opening_poll" ||
+    phase === "opening_min1" ||
     phase === "1m_poll" ||
     phase === "poll1m";
 
-  const intervalPoll =
-    typeof status.pollIntervalSec === "number" &&
-    status.pollIntervalSec > 0 &&
-    status.windowActive &&
-    !status.sessionComplete &&
-    phase !== "session_complete";
-
-  const running = poll1mActive || phasePoll || intervalPoll;
+  // pollIntervalSec on status API is configured interval metadata, not "polling is running".
+  const running = poll1mActive || phasePoll;
 
   if (running) {
     const window =

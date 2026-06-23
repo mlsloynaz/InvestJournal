@@ -842,6 +842,7 @@ export async function postMov15mTick(payload?: {
   pollingEndTimeEt?: string;
   pollingStartMinutesEt?: number;
   pollingEndMinutesEt?: number;
+  /** @deprecated use symbols — normalized before POST */
   tickersForPolling?: string[];
   simulateUntilDate?: string;
   simulateUntilTime?: string;
@@ -855,11 +856,26 @@ export async function postMov15mTick(payload?: {
   | { ok: true; data: Record<string, unknown> }
   | { ok: false; error: string }
 > {
+  const { tickersForPolling: _legacyTickers, symbols: rawSymbols, ...rest } = payload ?? {};
+  const symbols = [...new Set(
+    [...(rawSymbols ?? []), ...(_legacyTickers ?? [])]
+      .map((s) => String(s ?? "").trim().toUpperCase())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
+  const body: Record<string, unknown> = {
+    force: true,
+    async: true,
+    mode: "full_assessment_inside_b15m",
+    ...rest,
+  };
+  if (symbols.length > 0) {
+    body.symbols = symbols;
+  }
   const result = await financeAiStockAuxFetch<Record<string, unknown>>(
     MOV15M_STATUS_PATH,
     {
       method: "POST",
-      body: JSON.stringify({ force: true, async: true, mode: "full_assessment_inside_b15m", ...payload }),
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(MOV15M_POST_TIMEOUT_MS),
     }
   );
@@ -1443,7 +1459,68 @@ async function fetchFinanceAiJson(
   return { response, parsed };
 }
 
-/** Sync batch ticker assessment — POST /tickers/check. */
+function finalizeStrategyEvalResult(
+  data: FinanceAiStrategyEvalResult
+):
+  | { ok: true; data: FinanceAiStrategyEvalResult }
+  | { ok: false; status: number; error: string } {
+  if (data.status === "error" || data.success === false) {
+    return {
+      ok: false,
+      status: 502,
+      error: data.error ?? "Tickers check falló",
+    };
+  }
+  return { ok: true, data };
+}
+
+const STRATEGY_EVAL_POLL_INTERVAL_MS = 5_000;
+const STRATEGY_EVAL_POLL_MAX_ATTEMPTS = 120;
+
+async function pollStrategyEvalUntilDone(options: {
+  startedAt?: string | null;
+}): Promise<
+  | { ok: true; data: FinanceAiStrategyEvalResult }
+  | { ok: false; status: number; error: string }
+> {
+  for (let attempt = 0; attempt < STRATEGY_EVAL_POLL_MAX_ATTEMPTS; attempt += 1) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, STRATEGY_EVAL_POLL_INTERVAL_MS));
+    }
+    const poll = await getStrategyEvalResult();
+    if (!poll.ok) {
+      if (poll.notFound && attempt < 5) continue;
+      if (!poll.notFound) {
+        return { ok: false, status: poll.status, error: poll.error };
+      }
+      continue;
+    }
+    const data = poll.data;
+    if (!data || data.status === "running") continue;
+    if (options.startedAt && data.startedAt && data.startedAt < options.startedAt) continue;
+    if (!strategyEvalFinished(data)) continue;
+    return finalizeStrategyEvalResult(data);
+  }
+
+  const last = await getStrategyEvalResult();
+  if (last.ok && last.data?.status === "running") {
+    return {
+      ok: false,
+      status: 0,
+      error: "La evaluación sigue en curso en AWS — usa Check Result en unos minutos.",
+    };
+  }
+  if (last.ok && last.data && strategyEvalFinished(last.data)) {
+    return finalizeStrategyEvalResult(last.data);
+  }
+  return {
+    ok: false,
+    status: 0,
+    error: "Timeout esperando tickers/check — usa Check Result o revisa CloudWatch.",
+  };
+}
+
+/** Async batch ticker assessment — POST /tickers/check, poll GET /tickers/check/result. */
 export async function runStrategyEvalCheck(options: {
   symbols: string[];
   strategies: string[];
@@ -1469,7 +1546,7 @@ export async function runStrategyEvalCheck(options: {
   try {
     const { response, parsed } = await fetchFinanceAiJson("POST", url, {
       body: payload,
-      timeoutMs: STRATEGY_EVAL_FETCH_MS,
+      timeoutMs: 60_000,
     });
 
     if (response.status === 404) {
@@ -1479,6 +1556,16 @@ export async function runStrategyEvalCheck(options: {
         notFound: true,
         error: String(parsed.error ?? "POST /tickers/check not deployed"),
       };
+    }
+
+    if (response.status === 202 || parsed.status === "running") {
+      const accepted = parseStrategyEvalResponse(parsed);
+      return pollStrategyEvalUntilDone({
+        startedAt:
+          (accepted?.startedAt as string | undefined) ??
+          (parsed.startedAt as string | undefined) ??
+          null,
+      });
     }
 
     if (!response.ok) {
@@ -1493,14 +1580,7 @@ export async function runStrategyEvalCheck(options: {
     if (!data) {
       return { ok: false, status: 500, error: "Tickers check response missing payload" };
     }
-    if (data.status === "error" || data.success === false) {
-      return {
-        ok: false,
-        status: 502,
-        error: data.error ?? "Tickers check falló",
-      };
-    }
-    return { ok: true, data };
+    return finalizeStrategyEvalResult(data);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Network error";
     return { ok: false, status: 0, error: message };

@@ -501,12 +501,25 @@ export function Mov15mInsidePanel({
     }
   }, [embedded, onStatusUpdate]);
 
+  const listSymbols = useMemo(() => {
+    const poolSource = status?.watchlistSource === "tickersToday15M";
+    if (poolSource && (status?.watchlist?.length ?? 0) > 0) {
+      return status!.watchlist!;
+    }
+    if (configSymbols.length > 0) return configSymbols;
+    if ((status?.watchlist?.length ?? 0) > 0) return status!.watchlist!;
+    if (status?.tickers) return Object.keys(status.tickers);
+    return [];
+  }, [status, configSymbols]);
+
   const handleEvaluate = useCallback(async () => {
     const effectivePolling = pollingParams;
     const tickers =
-      effectivePolling.tickersForPolling?.length
-        ? effectivePolling.tickersForPolling
-        : configSymbols;
+      listSymbols.length > 0
+        ? listSymbols
+        : effectivePolling.tickersForPolling?.length
+          ? effectivePolling.tickersForPolling
+          : configSymbols;
     const checkOptions = {
       ...mov15mPollingToApiPayload({ ...effectivePolling, tickersForPolling: tickers }),
       mode: "full_assessment_inside_b15m" as const,
@@ -541,7 +554,7 @@ export function Mov15mInsidePanel({
     } finally {
       setTriggeringNow(false);
     }
-  }, [configSymbols, embedded, loadStatus, onRefresh, onStatusUpdate, pollingParams]);
+  }, [configSymbols, embedded, listSymbols, loadStatus, onRefresh, onStatusUpdate, pollingParams]);
 
   useEffect(() => {
     if (embedded) return;
@@ -563,16 +576,7 @@ export function Mov15mInsidePanel({
   const displayTradeDate = status?.effectiveTradeDate ?? status?.tradeDate;
 
   const poolSource = status?.watchlistSource === "tickersToday15M";
-  const symbols =
-    poolSource && (status?.watchlist?.length ?? 0) > 0
-      ? status!.watchlist!
-      : configSymbols.length > 0
-        ? configSymbols
-        : (status?.watchlist?.length ?? 0) > 0
-          ? status!.watchlist!
-          : status?.tickers
-            ? Object.keys(status.tickers)
-            : [];
+  const symbols = listSymbols;
   const allRows: FinanceAiMov15mTicker[] = symbols.map((sym) => ({
     ...(status?.tickers?.[sym] ?? {}),
     symbol: sym,

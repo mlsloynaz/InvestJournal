@@ -127,8 +127,7 @@ export function inferRuleKey(num: string, label: string, timeframe: string): str
   if (/lateral/.test(t) && /bollinger|bb/.test(t)) return "bb_lateral_squeeze";
 
   if (/volatil/.test(t) && (/abiert|expand|disipador/.test(t))) {
-    if (timeframe === "15m") return "vol_bb_expand_post_open";
-    if (timeframe === "1h") return "vol_bb_expand";
+    return "vol_bb_expand";
   }
 
   if (/completamente fuera|100% fuera|fuera de bollinger|fuera del oscilador/i.test(label)) {

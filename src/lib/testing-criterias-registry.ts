@@ -53,9 +53,9 @@ export const NO_STRATEGY_OPTION: TestingStrategyOption = {
 
 export const BB15_CRITERIA_CHECKS: TestingCriteriaCheck[] = [
   {
-    checkId: "bb15:vol_bb_expand_post_open",
-    ruleKey: "vol_bb_expand_post_open",
-    label: "Vol BB expandió post-apertura",
+    checkId: "15m.vol_bb_expand",
+    ruleKey: "vol_bb_expand",
+    label: "Vol BB expandiendo (15m)",
     timeframe: "15m",
     automatable: "true",
     strategyId: BB15_STRATEGY_ID,
@@ -230,6 +230,8 @@ export function filterChecksByTimeframe(
 /** One row per FinanceAI rule (timeframe + ruleKey). Playbook variants often repeat the same check. */
 export const BB15_RULE_KEY_TO_ITEM_ID: Record<string, string> = {
   open_inside_bb15: "opensInsideBb15m",
+  vol_bb_expand: "volExpandedAfterPremarket",
+  /** @deprecated legacy ruleKey — same opening vol check as vol_bb_expand @ 15m */
   vol_bb_expand_post_open: "volExpandedAfterPremarket",
   bb_mid_cut_15m: "puntoMedioCut",
   trend_cut_counter: "cutsTrendReinforcement",
