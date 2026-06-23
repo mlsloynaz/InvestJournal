@@ -13,16 +13,25 @@ export type MarketAiProcessScope = {
   note?: string;
 };
 
-/** Default playbook ids for batch strategy evaluation. */
+/** Default playbook ids for batch strategy evaluation (fallback when AWS unavailable). */
 export const MARKET_START_DEFAULT_STRATEGIES = [
   "estrategia-01",
   "estrategia-02",
   "estrategia-03",
   "estrategia-04",
+  "bolinger-15-change-trend",
 ] as const;
 
-/** Playbooks selectable for NOW / POST evaluation (scheduleSettings.evaluateStrategyIds). */
+export type PlaybookCurrentEntry = { id: string; title: string };
+
+/** Playbooks selectable for PRE / NOW / POST (scheduleSettings.evaluateStrategyIds). */
 export const MARKET_AI_EVALUABLE_STRATEGIES = MARKET_START_DEFAULT_STRATEGIES;
+
+export const MARKET_AI_EVALUABLE_STRATEGIES_FALLBACK: PlaybookCurrentEntry[] =
+  MARKET_START_DEFAULT_STRATEGIES.map((id) => ({
+    id,
+    title: id,
+  }));
 
 export const MARKET_AI_PROCESS_SCOPES: MarketAiProcessScope[] = [
   {

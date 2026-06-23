@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { tradingDateEt } from "@/lib/live-session-window";
 import { CollapsibleResultSection } from "@/components/gestion/CollapsibleResultSection";
 import { StrategyChecklistBlock } from "@/components/gestion/MarketNowStrategyResults";
+import { MarketNowMlongConfigModal } from "@/components/market/MarketNowMlongConfigModal";
+import { MarketNowStrategiesConfigModal } from "@/components/market/MarketNowStrategiesConfigModal";
 import {
   checkMarketNowEvaluation,
   getConfiguredEvaluateStrategyIds,
@@ -13,6 +14,7 @@ import {
   type MarketNowEvaluationMode,
   type MarketNowEvaluationTickerResult,
 } from "@/server/actions/finance-ai";
+import { listMlongTickersForMarket } from "@/server/actions/tickers";
 import {
   filterStrategyFits,
   STRATEGY_CANONICAL_NAMES,
@@ -49,14 +51,20 @@ function defaultSelectedSymbols(tickers: EvaluateTickerRow[]): string[] {
 const CONFIG_CAMBIAR_LINK =
   "inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-semibold text-investep-navy bg-investep-gold/30 border border-investep-gold/70 underline decoration-investep-navy/40 underline-offset-2 hover:bg-investep-gold/55 hover:border-investep-gold hover:decoration-investep-navy transition-colors";
 
-function ConfigTickersHint({ tickers }: { tickers: EvaluateTickerRow[] }) {
+function ConfigTickersHint({
+  tickers,
+  onCambiar,
+}: {
+  tickers: EvaluateTickerRow[];
+  onCambiar: () => void;
+}) {
   if (tickers.length === 0) {
     return (
       <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2.5 py-2">
-        Sin tickers Movimientos Long. Marcalos en{" "}
-        <Link href="/config/tickers" className="underline font-medium">
-          Config &gt; Tickers &gt; Movimientos Long
-        </Link>
+        Sin tickers Movimientos Long.{" "}
+        <button type="button" onClick={onCambiar} className="underline font-medium">
+          Configurar Movimientos Long
+        </button>
         .
       </p>
     );
@@ -68,9 +76,9 @@ function ConfigTickersHint({ tickers }: { tickers: EvaluateTickerRow[] }) {
     <p className="text-[11px] text-gray-600">
       Tickers (Movimientos Long): {labels}
       {" | "}
-      <Link href="/config/tickers" className={CONFIG_CAMBIAR_LINK}>
+      <button type="button" onClick={onCambiar} className={CONFIG_CAMBIAR_LINK}>
         cambiar
-      </Link>
+      </button>
     </p>
   );
 }
@@ -78,9 +86,11 @@ function ConfigTickersHint({ tickers }: { tickers: EvaluateTickerRow[] }) {
 function ConfigStrategiesHint({
   strategyIds,
   loading,
+  onCambiar,
 }: {
   strategyIds: string[];
   loading?: boolean;
+  onCambiar: () => void;
 }) {
   if (loading) {
     return <p className="text-[11px] text-gray-500">Cargando estrategias desde Config AWS...</p>;
@@ -89,10 +99,10 @@ function ConfigStrategiesHint({
   if (strategyIds.length === 0) {
     return (
       <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2.5 py-2">
-        Sin estrategias configuradas. Elige playbooks en{" "}
-        <Link href="/config/aws" className="underline font-medium">
-          Config AWS
-        </Link>
+        Sin estrategias configuradas.{" "}
+        <button type="button" onClick={onCambiar} className="underline font-medium">
+          Elegir estrategias
+        </button>
         .
       </p>
     );
@@ -103,9 +113,9 @@ function ConfigStrategiesHint({
       Estrategias (Config AWS):{" "}
       {strategyIds.map((id) => STRATEGY_CANONICAL_NAMES[id] ?? id).join(", ")}
       {" | "}
-      <Link href="/config/aws" className={CONFIG_CAMBIAR_LINK}>
+      <button type="button" onClick={onCambiar} className={CONFIG_CAMBIAR_LINK}>
         cambiar
-      </Link>
+      </button>
     </p>
   );
 }
@@ -193,12 +203,22 @@ export function MarketNowEvaluatePanel({
   const [loadedStrategyIds, setLoadedStrategyIds] = useState<string[]>([]);
   const [strategiesLoading, setStrategiesLoading] = useState(false);
   const strategiesLoadedRef = useRef(false);
+  const [strategiesModalOpen, setStrategiesModalOpen] = useState(false);
+  const [mlongModalOpen, setMlongModalOpen] = useState(false);
+  const [localEvaluateTickers, setLocalEvaluateTickers] = useState(evaluateTickers);
+
+  useEffect(() => {
+    setLocalEvaluateTickers(evaluateTickers);
+  }, [evaluateTickers]);
 
   const strategyIds = useMemo(
     () => [...new Set(loadedStrategyIds.map((id) => id.trim()).filter(Boolean))],
     [loadedStrategyIds]
   );
-  const symbols = useMemo(() => defaultSelectedSymbols(evaluateTickers), [evaluateTickers]);
+  const symbols = useMemo(
+    () => defaultSelectedSymbols(localEvaluateTickers),
+    [localEvaluateTickers]
+  );
 
   const [evalMode, setEvalMode] = useState<MarketNowEvaluationMode>("now");
   const [tradeDate, setTradeDate] = useState(() => tradingDateEt());
@@ -222,6 +242,10 @@ export function MarketNowEvaluatePanel({
       .then((ids) => setLoadedStrategyIds(ids))
       .finally(() => setStrategiesLoading(false));
   }, [open]);
+
+  const refreshEvaluateTickers = useCallback(() => {
+    void listMlongTickersForMarket().then((rows) => setLocalEvaluateTickers(rows));
+  }, []);
 
   const applyCheckPayload = useCallback(
     (
@@ -309,6 +333,7 @@ export function MarketNowEvaluatePanel({
   const canRun = symbols.length > 0 && strategyIds.length > 0;
 
   return (
+    <>
     <CollapsibleResultSection
       id="journey-result-now"
       title="Result Now"
@@ -350,9 +375,16 @@ export function MarketNowEvaluatePanel({
           )}
         </div>
 
-        <ConfigStrategiesHint strategyIds={strategyIds} loading={strategiesLoading} />
+        <ConfigStrategiesHint
+          strategyIds={strategyIds}
+          loading={strategiesLoading}
+          onCambiar={() => setStrategiesModalOpen(true)}
+        />
 
-        <ConfigTickersHint tickers={evaluateTickers} />
+        <ConfigTickersHint
+          tickers={localEvaluateTickers}
+          onCambiar={() => setMlongModalOpen(true)}
+        />
 
         <div className="rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-2.5 space-y-2">
           <p className="text-xs font-medium text-investep-navy">Momento de evaluacion</p>
@@ -442,5 +474,17 @@ export function MarketNowEvaluatePanel({
         </p>
       )}
     </CollapsibleResultSection>
+
+    <MarketNowStrategiesConfigModal
+      open={strategiesModalOpen}
+      onClose={() => setStrategiesModalOpen(false)}
+      onSaved={(ids) => setLoadedStrategyIds(ids)}
+    />
+    <MarketNowMlongConfigModal
+      open={mlongModalOpen}
+      onClose={() => setMlongModalOpen(false)}
+      onSaved={() => refreshEvaluateTickers()}
+    />
+  </>
   );
 }

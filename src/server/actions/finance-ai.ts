@@ -535,18 +535,12 @@ export async function checkFinanceAiTicker(
   return { success: true, analysis: result.data };
 }
 
-/** Playbook ids from Config AWS (evaluateStrategyIds / effective). */
+/** Playbook ids for evaluation — MySQL selection validated against AWS playbook-current. */
 export async function getConfiguredEvaluateStrategyIds(): Promise<string[]> {
-  if (!isFinanceAiConfigured()) return [];
-  const schedules = await getScheduleSettings();
-  if (!schedules.ok) return ["estrategia-01"];
-  if (schedules.data.evaluateStrategyIdsEffective?.length) {
-    return schedules.data.evaluateStrategyIdsEffective;
-  }
-  if (schedules.data.evaluateStrategyIds?.length) {
-    return schedules.data.evaluateStrategyIds;
-  }
-  return ["estrategia-01"];
+  const { getConfiguredEvaluateStrategyIdsFromStore } = await import(
+    "@/server/actions/evaluate-strategy-settings"
+  );
+  return getConfiguredEvaluateStrategyIdsFromStore();
 }
 
 export type MarketNowEvaluationMode = "now" | "at";

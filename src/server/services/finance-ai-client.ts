@@ -1255,6 +1255,8 @@ export type FinanceAiScheduleSettings = {
   evaluateStrategyIds?: string[] | null;
   evaluateStrategyIdsEffective?: string[];
   evaluateStrategyIdsSource?: string | null;
+  playbookCurrent?: { id: string; title: string }[];
+  playbookCurrentVersion?: string | null;
   /** Full-day equity closures (YYYY-MM-DD ET). */
   noTradingDays?: FinanceAiNoTradingDayEntry[];
   noTradingDaysEffective?: string[];
@@ -1477,6 +1479,57 @@ function finalizeStrategyEvalResult(
 const STRATEGY_EVAL_POLL_INTERVAL_MS = 5_000;
 const STRATEGY_EVAL_POLL_MAX_ATTEMPTS = 120;
 
+/** FinanceAI POST /tickers/check limit (market_entry_batch.MAX_TICKERS_CHECK_SYMBOLS). */
+export const TICKERS_CHECK_MAX_SYMBOLS = 50;
+
+function chunkSymbols(symbols: string[], size: number): string[][] {
+  const chunks: string[][] = [];
+  for (let i = 0; i < symbols.length; i += size) {
+    chunks.push(symbols.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function mergeStrategyEvalResults(parts: FinanceAiStrategyEvalResult[]): FinanceAiStrategyEvalResult {
+  const results = parts.flatMap((part) => part.results ?? []);
+  const ok = results.filter((row) => row.success !== false).length;
+  const failed = results.filter((row) => row.success === false).length;
+  const barParts = parts.map((part) => part.barRequest).filter((br) => br?.ran);
+  const barRequest =
+    barParts.length > 0
+      ? {
+          ran: true,
+          successCount: barParts.reduce((sum, br) => sum + (br?.successCount ?? 0), 0),
+          failedSymbols: [
+            ...new Set(barParts.flatMap((br) => br?.failedSymbols ?? [])),
+          ],
+        }
+      : undefined;
+  const evaluatedAt = parts
+    .map((part) => part.evaluatedAt)
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .pop();
+  const updatedAt =
+    parts
+      .map((part) => part.updatedAt)
+      .filter((value): value is string => Boolean(value))
+      .sort()
+      .pop() ?? null;
+
+  return {
+    success: ok > 0,
+    status: "complete",
+    tradeDate: parts.find((part) => part.tradeDate)?.tradeDate,
+    simulationTimeEt: parts.find((part) => part.simulationTimeEt)?.simulationTimeEt,
+    evaluatedAt,
+    updatedAt,
+    summary: { total: results.length, ok, failed },
+    barRequest,
+    results,
+  };
+}
+
 async function pollStrategyEvalUntilDone(options: {
   startedAt?: string | null;
 }): Promise<
@@ -1520,8 +1573,8 @@ async function pollStrategyEvalUntilDone(options: {
   };
 }
 
-/** Async batch ticker assessment — POST /tickers/check, poll GET /tickers/check/result. */
-export async function runStrategyEvalCheck(options: {
+/** Single POST /tickers/check (≤50 symbols). */
+async function runStrategyEvalCheckOnce(options: {
   symbols: string[];
   strategies: string[];
   tradeDate?: string;
@@ -1585,6 +1638,62 @@ export async function runStrategyEvalCheck(options: {
     const message = e instanceof Error ? e.message : "Network error";
     return { ok: false, status: 0, error: message };
   }
+}
+
+/** Async batch ticker assessment — POST /tickers/check, poll GET /tickers/check/result. */
+export async function runStrategyEvalCheck(options: {
+  symbols: string[];
+  strategies: string[];
+  tradeDate?: string;
+  simulationTimeEt?: string;
+  skipBars?: boolean;
+  saveTickersNow?: boolean;
+}): Promise<
+  | { ok: true; data: FinanceAiStrategyEvalResult }
+  | { ok: false; status: number; error: string; notFound?: boolean }
+> {
+  const symbols = [
+    ...new Set(options.symbols.map((symbol) => symbol.trim().toUpperCase()).filter(Boolean)),
+  ];
+  if (symbols.length === 0) {
+    return { ok: false, status: 400, error: "Selecciona al menos un ticker." };
+  }
+
+  if (symbols.length <= TICKERS_CHECK_MAX_SYMBOLS) {
+    return runStrategyEvalCheckOnce({ ...options, symbols });
+  }
+
+  const chunks = chunkSymbols(symbols, TICKERS_CHECK_MAX_SYMBOLS);
+  const merged: FinanceAiStrategyEvalResult[] = [];
+  let notFound = false;
+
+  for (const chunk of chunks) {
+    const result = await runStrategyEvalCheckOnce({ ...options, symbols: chunk });
+    if (result.ok) {
+      merged.push(result.data);
+      continue;
+    }
+    if (result.notFound) {
+      notFound = true;
+      return result;
+    }
+    merged.push({
+      status: "error",
+      error: result.error,
+      results: chunk.map((symbol) => ({
+        symbol,
+        success: false,
+        error: result.error,
+      })),
+    });
+  }
+
+  const data = mergeStrategyEvalResults(merged);
+  const finalized = finalizeStrategyEvalResult(data);
+  if (!finalized.ok) {
+    return { ...finalized, notFound: notFound || undefined };
+  }
+  return finalized;
 }
 
 export async function getStrategyEvalResult(): Promise<

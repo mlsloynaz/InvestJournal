@@ -17,6 +17,14 @@ import {
   type FinanceAiScheduleSettings,
 } from "@/server/services/finance-ai-client";
 import { listBolinger15Symbols, listFavoriteSymbols, setBolinger15Tickers } from "@/server/actions/tickers";
+import {
+  getEvaluateStrategySettings,
+  saveEvaluateStrategyIdsToMysql,
+} from "@/server/actions/evaluate-strategy-settings";
+import {
+  normalizeEvaluateStrategyIds,
+  schedulePreservePayloadFromSettings,
+} from "@/lib/evaluate-strategy-ids";
 import { prisma } from "@/lib/db";
 
 export type FinanceAiScheduleActionResult = {
@@ -202,20 +210,43 @@ function parseTickerSymbolsInput(raw: string): string[] {
 
 export async function setFinanceAiEvaluateStrategyIds(
   strategyIds: string[]
-): Promise<FinanceAiScheduleActionResult> {
-  if (!isFinanceAiConfigured()) {
-    return { success: false, error: "FinanceAI no configurado." };
-  }
-  const normalized = [...new Set(strategyIds.map((id) => id.trim()).filter(Boolean))];
+): Promise<FinanceAiScheduleActionResult & { awsWarning?: string }> {
+  const snapshot = isFinanceAiConfigured() ? await getEvaluateStrategySettings() : null;
+  const catalogIds = snapshot?.catalog.map((row) => row.id) ?? [];
+  const normalized = normalizeEvaluateStrategyIds(strategyIds, catalogIds);
   if (normalized.length === 0) {
-    return { success: false, error: "Selecciona al menos una estrategia." };
+    return { success: false, error: "Selecciona al menos una estrategia válida (e01–e05)." };
   }
+
+  await saveEvaluateStrategyIdsToMysql(normalized);
+
+  if (!isFinanceAiConfigured()) {
+    revalidateSchedulePaths();
+    return { success: true };
+  }
+
+  const current = await getScheduleSettings();
+  const preserve =
+    current.ok && current.data
+      ? schedulePreservePayloadFromSettings(current.data)
+      : { scheduledJobsEnabled: true };
+
   const result = await putScheduleSettings({
+    ...preserve,
     evaluateStrategyIds: normalized,
     evaluateStrategyIdsSource: "investjournal-market-ai",
   });
-  if (!result.ok) return { success: false, error: result.error };
+
   revalidateSchedulePaths();
+
+  if (!result.ok) {
+    return {
+      success: true,
+      awsWarning: result.error,
+      settings: current.ok ? current.data : undefined,
+    };
+  }
+
   return { success: true, settings: result.data };
 }
 

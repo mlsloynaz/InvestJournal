@@ -24,6 +24,7 @@ export const STRATEGY_CANONICAL_NAMES: Record<string, string> = {
   "estrategia-02": "Rebote punto medio DÍA",
   "estrategia-03": "Efecto imán",
   "estrategia-04": "Lateral BB15 + gap",
+  "bolinger-15-change-trend": "Movimientos 15M · Inside Bolinger",
 };
 
 /** Proposed entry timing window per strategy (mirrors backend STRATEGY_TIMING_PROFILE). */

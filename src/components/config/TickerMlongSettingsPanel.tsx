@@ -10,6 +10,10 @@ type Props = {
   rangoOptimoRows: RangoOptimoEntry[];
   initialMlongTickers: string[];
   lastImportDate?: string | null;
+  defaultOpen?: boolean;
+  /** When true, omit collapsible section chrome (e.g. inside a modal). */
+  embedded?: boolean;
+  onSaved?: (symbols: string[]) => void;
 };
 
 function buildInitialSelection(
@@ -64,6 +68,9 @@ export function TickerMlongSettingsPanel({
   rangoOptimoRows,
   initialMlongTickers,
   lastImportDate,
+  defaultOpen = false,
+  embedded = false,
+  onSaved,
 }: Props) {
   const [selected, setSelected] = useState<Set<string>>(() =>
     buildInitialSelection(initialMlongTickers, rangoOptimoRows)
@@ -139,28 +146,12 @@ export function TickerMlongSettingsPanel({
           ? `Movimientos Long guardado en MySQL (${symbols.length} tickers).`
           : "Movimientos Long guardado - ningun ticker marcado."
       );
+      onSaved?.(symbols);
     });
   }
 
-  return (
-    <CollapsibleConfigSection
-      title="Movimientos Long"
-      subtitle={subtitle}
-      defaultOpen={false}
-      headerExtraWhenOpenOnly
-      headerExtra={
-        rangoOptimoRows.length > 0 ? (
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={pending}
-            className="text-sm font-medium !text-white px-4 py-2 rounded-lg shadow-md disabled:opacity-50 !bg-emerald-700 hover:!bg-emerald-800"
-          >
-            {pending ? "..." : "Guardar Long"}
-          </button>
-        ) : null
-      }
-    >
+  const content = (
+    <>
       {rangoOptimoRows.length === 0 ? (
         <p className="text-sm text-gray-500">Sin tickers cargados.</p>
       ) : (
@@ -269,6 +260,38 @@ export function TickerMlongSettingsPanel({
           {message}
         </p>
       ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="space-y-3">
+        {subtitle ? <p className="text-xs text-gray-600">{subtitle}</p> : null}
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <CollapsibleConfigSection
+      title="Movimientos Long"
+      subtitle={subtitle}
+      defaultOpen={defaultOpen}
+      headerExtraWhenOpenOnly
+      headerExtra={
+        rangoOptimoRows.length > 0 ? (
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={pending}
+            className="text-sm font-medium !text-white px-4 py-2 rounded-lg shadow-md disabled:opacity-50 !bg-emerald-700 hover:!bg-emerald-800"
+          >
+            {pending ? "..." : "Guardar Long"}
+          </button>
+        ) : null
+      }
+    >
+      {content}
     </CollapsibleConfigSection>
   );
 }
